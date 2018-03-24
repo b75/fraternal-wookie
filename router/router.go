@@ -18,7 +18,7 @@ type GetHandler interface {
 }
 
 type PostHandler interface {
-	HandlePost(http.ResponseWriter) error
+	HandlePost(http.ResponseWriter, *http.Request) error
 }
 
 var handlers map[string]func(*http.Request) (Handler, error) = make(map[string]func(*http.Request) (Handler, error))
@@ -42,10 +42,8 @@ func RootHandler(w http.ResponseWriter, rq *http.Request) {
 	switch rq.Method {
 	case "GET":
 		handleGet(w, rq)
-		return
 	case "POST":
 		handlePost(w, rq)
-		return
 	default:
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 	}
@@ -60,7 +58,12 @@ func handleGet(w http.ResponseWriter, rq *http.Request) {
 
 	h, err := hf(rq)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError) // TODO error handling
+		handleError(w, err)
+		return
+	}
+
+	if !h.CanAccess() {
+		handleForbidden(w)
 		return
 	}
 
@@ -71,7 +74,7 @@ func handleGet(w http.ResponseWriter, rq *http.Request) {
 	}
 
 	if err = gh.HandleGet(w); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError) // TODO error handling
+		handleError(w, err)
 		return
 	}
 }
@@ -85,7 +88,12 @@ func handlePost(w http.ResponseWriter, rq *http.Request) {
 
 	h, err := hf(rq)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError) // TODO error handling
+		handleError(w, err)
+		return
+	}
+
+	if !h.CanAccess() {
+		handleForbidden(w)
 		return
 	}
 
@@ -95,8 +103,25 @@ func handlePost(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	if err = ph.HandlePost(w); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError) // TODO error handling
+	if err = ph.HandlePost(w, rq); err != nil {
+		handleError(w, err)
 		return
 	}
+}
+
+func handleError(w http.ResponseWriter, err error) {
+	switch v := err.(type) {
+	case *notFoundError:
+		http.Error(w, "not found", http.StatusNotFound)
+	case *badRequestError:
+		log.Printf("bad request error: %v", v.err)
+		http.Error(w, "bad request", http.StatusBadRequest)
+	default:
+		log.Printf("internal server error: %v", v)
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+	}
+}
+
+func handleForbidden(w http.ResponseWriter) {
+	http.Error(w, "forbidden", http.StatusForbidden)
 }

@@ -1,5 +1,13 @@
 {{template "header.html"}}
 
+{{if .Errors}}
+<ul>
+	{{range .Errors}}
+	<li>{{.}}</li>
+	{{end}}
+</ul>
+{{end}}
+
 <h3>Log in</h3>
 <form method="post" action="{{.Action}}">
 	<div>

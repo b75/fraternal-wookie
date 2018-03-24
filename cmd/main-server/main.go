@@ -7,6 +7,7 @@ import (
 
 	"github.com/b75/fraternal-wookie/conf"
 	_ "github.com/b75/fraternal-wookie/handler"
+	"github.com/b75/fraternal-wookie/repo"
 	"github.com/b75/fraternal-wookie/router"
 )
 
@@ -23,6 +24,7 @@ func main() {
 	c := conf.Get()
 
 	router.LoadTemplates(c.TplDir())
+	repo.Initialize(c.Db)
 
 	fs := http.FileServer(http.Dir(c.StaticDir()))
 	http.Handle("/assets/", http.StripPrefix("/assets/", fs))

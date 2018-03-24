@@ -1,0 +1,7 @@
+{{template "header.html"}}
+
+<h3>User {{.User.Username}} home view</h3>
+
+<h4>{{with .CurrentUser}}Logged in as {{.Username}}{{else}}Not logged in{{end}}</h4>
+
+{{template "footer.html"}}

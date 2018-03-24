@@ -13,6 +13,7 @@ var lock *sync.RWMutex = &sync.RWMutex{}
 
 type Config struct {
 	BaseDir string
+	Db      string
 }
 
 func (c *Config) StaticDir() string {
