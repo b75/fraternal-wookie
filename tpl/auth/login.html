@@ -1,0 +1,16 @@
+{{template "header.html"}}
+
+<h3>Log in</h3>
+<form method="post" action="{{.Action}}">
+	<div>
+		<label>Username <input type="text" name="Username"/></label>
+	</div>
+	<div>
+		<label>Password <input type="password" name="Password"/></label>
+	</div>
+	<div>
+		<button type="submit">Log in</button>
+	</div>
+</form>
+
+{{template "footer.html"}}
