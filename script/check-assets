@@ -1,0 +1,18 @@
+#!/bin/bash
+
+set -e
+
+THISFILE="$(realpath $0)"
+THISDIR="$(dirname $THISFILE)"
+
+cd $THISDIR/..
+
+assets="
+static/ext/jquery-3.3.1/jquery-3.3.1.min.js
+"
+
+for asset in $assets; do
+	if ! [ -f "$asset" ]; then
+		echo "missing $asset" 1>&2; exit 1
+	fi
+done
