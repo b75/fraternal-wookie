@@ -31,11 +31,14 @@ func (page *Logout) HandleGet(w http.ResponseWriter) error {
 }
 
 func (page *Logout) HandlePost(w http.ResponseWriter, rq *http.Request) error {
-	redirect := router.Redirect("/index", http.StatusFound)
+	response := map[string]interface{}{
+		"Success": true,
+		"Msg":     "Logged out",
+	}
 
 	cookie, err := rq.Cookie("session")
 	if err != nil {
-		return redirect
+		return router.JsonResponse(w, response)
 	}
 
 	if err = repo.Sessions.Delete(cookie.Value); err != nil {
@@ -45,5 +48,5 @@ func (page *Logout) HandlePost(w http.ResponseWriter, rq *http.Request) error {
 	cookie.MaxAge = -1
 	http.SetCookie(w, cookie)
 
-	return redirect
+	return router.JsonResponse(w, response)
 }

@@ -1,13 +1,12 @@
 {{template "header.html"}}
 
-<div class="ui center aligned container">
+{{template "menu.html" .CurrentUser}}
+
+<div class="ui center aligned main container">
 
 	<h3 class="ui header"><i class="home icon"></i> {{.User.Username}} Home</h3>
 
-	<a href="/index">Back to index</a>
-
-	<div class="ui horizontal divider"> TODO maybe write something here </div>
-
+	<div class="ui horizontal divider"> Home </div>
 
 </div>
 

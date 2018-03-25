@@ -130,5 +130,8 @@ func handleError(w http.ResponseWriter, rq *http.Request, err error) {
 }
 
 func handleForbidden(w http.ResponseWriter) {
-	http.Error(w, "forbidden", http.StatusForbidden)
+	if err := ExecuteErrorTemplate(w, "auth/forbidden.html", nil, http.StatusForbidden); err != nil {
+		log.Printf("internal server error: %v", err)
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+	}
 }

@@ -1,32 +1,12 @@
 {{template "header.html"}}
 
-<div class="ui center aligned container">
+{{template "menu.html" .CurrentUser}}
 
-	<h2 class="ui header">Fraternal Wookie Index</h2>
+<div class="ui center aligned main container">
 
-	<div class="ui list">
-		{{if .CurrentUser}}
-		<div class="item">
-			<i class="home icon"></i>
-			<div class="content">
-				{{.CurrentUser.Username}}'s <a href="/home?Username={{.CurrentUser.Username}}">home page</a>
-			</div>
-		</div>
-		<div class="item">
-			<i class="lock alternate icon"></i>
-			<div class="content">
-				<a href="/logout">Log out</a>
-			</div>
-		</div>
-		{{else}}
-		<div class="item">
-			<i class="unlock alternate icon"></i>
-			<div class="content">
-				<a href="/login">Log in</a>
-			</div>
-		</div>
-		{{end}}
-	</div>
+	<h3 class="ui header">Fraternal Wookie Index</h3>
+
+	<div class="ui horizontal divider"> <img class="logo small" src="/assets/ext/logo.png"/> </div>
 
 </div>
 

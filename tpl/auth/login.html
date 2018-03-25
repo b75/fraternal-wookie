@@ -1,6 +1,8 @@
 {{template "header.html"}}
 
-<div class="ui center aligned container">
+{{template "plain-menu.html"}}
+
+<div class="ui center aligned main container">
 
 	{{if .Errors}}
 	<div class="ui error message">
@@ -28,6 +30,6 @@
 		</form>
 	</div>
 
-	</div>
+</div>
 
 {{template "footer.html"}}

@@ -16,6 +16,7 @@ static/ext/semantic-ui-2.3.1/themes/default/assets/fonts/icons.svg
 static/ext/semantic-ui-2.3.1/themes/default/assets/fonts/icons.ttf
 static/ext/semantic-ui-2.3.1/themes/default/assets/fonts/icons.woff
 static/ext/semantic-ui-2.3.1/themes/default/assets/fonts/icons.woff2
+static/ext/logo.png
 "
 
 for asset in $assets; do

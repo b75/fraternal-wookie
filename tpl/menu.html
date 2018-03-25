@@ -1,0 +1,26 @@
+<div class="ui fixed inverted menu">
+	<div class="ui container">
+		<a class="header item" href="/index">
+			<img class="logo" src="/assets/ext/logo.png"/>
+			Fraternal Wookie
+		</a>
+		{{if .}}
+		<a class="item" href="/home?Username={{.Username}}"><i class="home icon"></i> Home</a>
+		<div class="ui simple dropdown item">
+			Menu <i class="dropdown icon"></i>
+			<div class="menu">
+				<a class="item" href="#">Placeholder 1</a>
+				<a class="item" href="#">Placeholder 2</a>
+				<a class="item" href="#">Placeholder 3</a>
+			</div>
+		</div>
+		{{end}}
+		<div class="right menu">
+			{{if .}}
+			<a class="item js-post-link" href="/logout" data-next="reload"><i class="lock alternate icon"></i> Log out</a>
+			{{else}}
+			<a class="item" href="/login"><i class="unlock alternate icon"></i> Log in</a>
+			{{end}}
+		</div>
+	</div>
+</div>
