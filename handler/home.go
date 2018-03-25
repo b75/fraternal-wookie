@@ -32,7 +32,7 @@ func requestHome(rq *http.Request) (router.Handler, error) {
 }
 
 func (page *Home) CanAccess() bool {
-	return true // TODO acl
+	return page.CurrentUser.Is(page.User)
 }
 
 func (page *Home) HandleGet(w http.ResponseWriter) error {

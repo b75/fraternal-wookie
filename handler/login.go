@@ -3,7 +3,9 @@ package handler
 import (
 	"fmt"
 	"net/http"
+	"time"
 
+	"github.com/b75/fraternal-wookie/conf"
 	"github.com/b75/fraternal-wookie/repo"
 	"github.com/b75/fraternal-wookie/router"
 )
@@ -51,17 +53,20 @@ func (page *Login) HandlePost(w http.ResponseWriter, rq *http.Request) error {
 		return router.ExecuteErrorTemplate(w, "auth/login.html", page, http.StatusUnauthorized)
 	}
 
-	session, err := repo.Users.MakeSession(user)
+	session, err := repo.Sessions.MakeForUser(user)
 	if err != nil {
 		return err
 	}
 
+	c := conf.Get()
 	cookie := &http.Cookie{
-		Name:  "session",
-		Value: session.Id,
+		Name:    "session",
+		Value:   session.Id,
+		Path:    "/",
+		Domain:  c.Session.Domain,
+		Expires: time.Now().Add(time.Duration(c.Session.ExpireHours) * time.Hour),
 	}
 	http.SetCookie(w, cookie)
 
-	http.Redirect(w, rq, fmt.Sprintf("/home?Username=%s", user.Username), http.StatusFound)
-	return nil
+	return router.Redirect(fmt.Sprintf("/home?Username=%s", user.Username), http.StatusFound)
 }

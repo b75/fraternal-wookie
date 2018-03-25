@@ -3,7 +3,11 @@
 <h2>Fraternal Wookie Index</h2>
 
 <ul>
-	<li><a href="/login">Log in</a></li>
+	{{if .CurrentUser}}
+	<li>{{.CurrentUser.Username}}'s <a href="/home?Username={{.CurrentUser.Username}}">home page</a></li>
+	{{else}}
+	<li>Not logged in, <a href="/login">log in here.</a></li>
+	{{end}}
 </ul>
 
 {{template "footer.html"}}

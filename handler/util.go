@@ -18,5 +18,10 @@ func currentUser(rq *http.Request) *model.User {
 		return nil
 	}
 
-	return repo.Users.FindBySession(cookie.Value)
+	session := repo.Sessions.Find(cookie.Value)
+	if session == nil || session.Expired() {
+		return nil
+	}
+
+	return repo.Users.FindByUsername(session.Username)
 }

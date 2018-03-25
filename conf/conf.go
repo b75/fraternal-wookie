@@ -14,6 +14,12 @@ var lock *sync.RWMutex = &sync.RWMutex{}
 type Config struct {
 	BaseDir string
 	Db      string
+	Session SessionConfig
+}
+
+type SessionConfig struct {
+	Domain      string
+	ExpireHours uint
 }
 
 func (c *Config) StaticDir() string {

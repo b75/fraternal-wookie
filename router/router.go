@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 	"sync"
 )
 
@@ -30,6 +31,10 @@ func RegisterHandler(path string, handleFunc func(*http.Request) (Handler, error
 	if handleFunc == nil {
 		panic(fmt.Errorf("router: nil handler func for path %s", path))
 	}
+	if !strings.HasPrefix(path, "/") {
+		panic(fmt.Errorf("router: path '%s' does not begin with /", path))
+	}
+
 	if _, ok := handlers[path]; ok {
 		panic(fmt.Errorf("router path conflict: %s", path))
 	}
@@ -58,7 +63,7 @@ func handleGet(w http.ResponseWriter, rq *http.Request) {
 
 	h, err := hf(rq)
 	if err != nil {
-		handleError(w, err)
+		handleError(w, rq, err)
 		return
 	}
 
@@ -74,7 +79,7 @@ func handleGet(w http.ResponseWriter, rq *http.Request) {
 	}
 
 	if err = gh.HandleGet(w); err != nil {
-		handleError(w, err)
+		handleError(w, rq, err)
 		return
 	}
 }
@@ -88,7 +93,7 @@ func handlePost(w http.ResponseWriter, rq *http.Request) {
 
 	h, err := hf(rq)
 	if err != nil {
-		handleError(w, err)
+		handleError(w, rq, err)
 		return
 	}
 
@@ -104,18 +109,20 @@ func handlePost(w http.ResponseWriter, rq *http.Request) {
 	}
 
 	if err = ph.HandlePost(w, rq); err != nil {
-		handleError(w, err)
+		handleError(w, rq, err)
 		return
 	}
 }
 
-func handleError(w http.ResponseWriter, err error) {
+func handleError(w http.ResponseWriter, rq *http.Request, err error) {
 	switch v := err.(type) {
 	case *notFoundError:
 		http.Error(w, "not found", http.StatusNotFound)
 	case *badRequestError:
 		log.Printf("bad request error: %v", v.err)
 		http.Error(w, "bad request", http.StatusBadRequest)
+	case *redirectError:
+		http.Redirect(w, rq, v.url, v.status)
 	default:
 		log.Printf("internal server error: %v", v)
 		http.Error(w, "internal server error", http.StatusInternalServerError)

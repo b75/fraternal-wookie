@@ -7,6 +7,7 @@ import (
 )
 
 var Users *userRepo
+var Sessions *sessionRepo
 
 var db *sql.DB
 
@@ -23,4 +24,5 @@ func Initialize(connStr string) {
 	log.Print("connected to db")
 
 	Users = &userRepo{db: db}
+	Sessions = &sessionRepo{db: db}
 }

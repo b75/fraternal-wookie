@@ -1,5 +1,9 @@
 package router
 
+import (
+	"fmt"
+)
+
 /*
  * 404 Not Found
  */
@@ -27,5 +31,24 @@ func (err *badRequestError) Error() string {
 func ErrBadRequest(err error) *badRequestError {
 	return &badRequestError{
 		err: err,
+	}
+}
+
+/*
+ * Redirects, not really errors but...
+ */
+type redirectError struct {
+	url    string
+	status int
+}
+
+func (err *redirectError) Error() string {
+	return fmt.Sprintf("redirect %d to %s", err.status, err.url)
+}
+
+func Redirect(url string, status int) *redirectError {
+	return &redirectError{
+		url:    url,
+		status: status,
 	}
 }

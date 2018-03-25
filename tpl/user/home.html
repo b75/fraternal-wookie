@@ -4,4 +4,8 @@
 
 <h4>{{with .CurrentUser}}Logged in as {{.Username}}{{else}}Not logged in{{end}}</h4>
 
+{{if .CurrentUser}}
+<h4><a href="/logout">Log out here</a></h4>
+{{end}}
+
 {{template "footer.html"}}
