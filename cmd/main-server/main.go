@@ -24,6 +24,7 @@ func main() {
 	c := conf.Get()
 
 	router.LoadTemplates(c.TplDir())
+	router.ReloadTemplates = c.ReloadTemplates
 	repo.Initialize(c.Db)
 
 	fs := http.FileServer(http.Dir(c.StaticDir()))

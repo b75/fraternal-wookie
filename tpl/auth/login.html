@@ -1,24 +1,33 @@
 {{template "header.html"}}
 
-{{if .Errors}}
-<ul>
-	{{range .Errors}}
-	<li>{{.}}</li>
-	{{end}}
-</ul>
-{{end}}
+<div class="ui center aligned container">
 
-<h3>Log in</h3>
-<form method="post" action="{{.Action}}">
-	<div>
-		<label>Username <input type="text" name="Username"/></label>
+	{{if .Errors}}
+	<div class="ui error message">
+		<ul class="list">
+			{{range .Errors}}
+			<li>{{.}}</li>
+			{{end}}
+		</ul>
 	</div>
-	<div>
-		<label>Password <input type="password" name="Password"/></label>
+	{{end}}
+
+	<div class="ui left aligned container">
+		<form id="login-form" class="ui form" method="post" action="{{.Action}}">
+			<h3 class="ui dividing header"><i class="unlock icon"></i> Log in</h3>
+			<div class="field">
+				<label>Username</label>
+				<input type="text" name="Username" placeholder="Username"/>
+			</div>
+			<div class="field">
+				<label>Password</label>
+				<input type="password" name="Password"/>
+			</div>
+			<button class="ui button" type="submit"><i class="unlock icon"></i> Log in</button>
+			<div class="ui error message"></div>
+		</form>
 	</div>
-	<div>
-		<button type="submit">Log in</button>
+
 	</div>
-</form>
 
 {{template "footer.html"}}

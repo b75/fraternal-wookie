@@ -1,11 +1,14 @@
 {{template "header.html"}}
 
-<h3>User {{.User.Username}} home view</h3>
+<div class="ui center aligned container">
 
-<h4>{{with .CurrentUser}}Logged in as {{.Username}}{{else}}Not logged in{{end}}</h4>
+	<h3 class="ui header"><i class="home icon"></i> {{.User.Username}} Home</h3>
 
-{{if .CurrentUser}}
-<h4><a href="/logout">Log out here</a></h4>
-{{end}}
+	<a href="/index">Back to index</a>
+
+	<div class="ui horizontal divider"> TODO maybe write something here </div>
+
+
+</div>
 
 {{template "footer.html"}}

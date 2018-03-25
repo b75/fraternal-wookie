@@ -7,13 +7,20 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"time"
 )
 
+var version int64 = time.Now().Unix()
 var tpls *template.Template
+var tplDir string
+var ReloadTemplates bool
 
 func LoadTemplates(dirname string) {
+	tplDir = dirname
 	var err error
-	fmap := template.FuncMap{}
+	fmap := template.FuncMap{
+		"V": func() int64 { return version },
+	}
 
 	tpls, err = util.LoadTemplates(dirname, fmap)
 	if err != nil {
@@ -30,6 +37,12 @@ func ExecuteErrorTemplate(w http.ResponseWriter, name string, data interface{}, 
 }
 
 func executeTemplate(w http.ResponseWriter, name string, data interface{}, status int) error {
+	if ReloadTemplates {
+		tpls = nil
+		log.Print("reloading templates")
+		LoadTemplates(tplDir)
+	}
+
 	b := &bytes.Buffer{}
 
 	if err := tpls.ExecuteTemplate(b, name, data); err != nil {

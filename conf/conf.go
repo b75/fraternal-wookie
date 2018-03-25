@@ -12,9 +12,10 @@ var ErrNotLoaded = errors.New("config not loaded")
 var lock *sync.RWMutex = &sync.RWMutex{}
 
 type Config struct {
-	BaseDir string
-	Db      string
-	Session SessionConfig
+	BaseDir         string
+	Db              string
+	Session         SessionConfig
+	ReloadTemplates bool
 }
 
 type SessionConfig struct {

@@ -1,10 +1,15 @@
 {{template "header.html"}}
 
-<h3>Log out</h3>
-<form method="post" action="{{.Action}}">
-	<div>
-		<button type="submit">Log out</button>
+<div class="ui center aligned container">
+
+	<div class="ui left aligned container">
+		<form id="logout-form" class="ui form" method="post" action="{{.Action}}">
+			<h3 class="ui dividing header"><i class="lock icon"></i> Log out</h3>
+			<button class="ui button" type="submit"><i class="lock icon"></i> Confirm</button>
+			<div class="ui error message"></div>
+		</form>
 	</div>
-</form>
+
+</div>
 
 {{template "footer.html"}}
