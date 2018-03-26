@@ -8,6 +8,7 @@ import (
 
 var Users *userRepo
 var Sessions *sessionRepo
+var Groups *groupRepo
 
 var db *sql.DB
 
@@ -25,4 +26,5 @@ func Initialize(connStr string) {
 
 	Users = &userRepo{db: db}
 	Sessions = &sessionRepo{db: db}
+	Groups = &groupRepo{db: db}
 }

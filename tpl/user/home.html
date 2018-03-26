@@ -8,6 +8,27 @@
 
 	<div class="ui horizontal divider"> Home </div>
 
+	<div class="ui grid">
+		<div class="four wide left aligned column">
+			<h4 class="ui top attached header"><i class="users icon"></i> My groups</h4>
+			<div class="ui attached segment">
+				<div class="ui relaxed animated list">
+					{{range .Groups}}
+					<a class="item" href="/grouphome?Id={{.Id}}">
+						<i class="users middle aligned icon"></i>
+						<div class="content">
+							<div class="header">{{.Name}}</div>
+							<div class="description">{{.Description}}</div>
+						</div>
+					</a>
+					{{end}}
+				</div>
+			</div>
+		</div>
+		<div class="eight wide column"></div>
+		<div class="four wide column"></div>
+	</div>
+
 </div>
 
 {{template "footer.html"}}

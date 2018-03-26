@@ -2,6 +2,7 @@ package handler
 
 import (
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/b75/fraternal-wookie/model"
@@ -24,4 +25,12 @@ func currentUser(rq *http.Request) *model.User {
 	}
 
 	return repo.Users.FindByUsername(session.Username)
+}
+
+func parseId(s string) int64 {
+	id, err := strconv.ParseInt(s, 10, 64)
+	if err != nil {
+		return 0
+	}
+	return id
 }

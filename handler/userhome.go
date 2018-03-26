@@ -9,15 +9,16 @@ import (
 )
 
 func init() {
-	router.RegisterHandler("/home", requestHome)
+	router.RegisterHandler("/userhome", requestUserHome)
 }
 
-type Home struct {
+type UserHome struct {
 	CurrentUser *model.User
 	User        *model.User
+	Groups      model.Groups
 }
 
-func requestHome(rq *http.Request) (router.Handler, error) {
+func requestUserHome(rq *http.Request) (router.Handler, error) {
 	query := rq.URL.Query()
 
 	user := repo.Users.FindByUsername(query.Get("Username"))
@@ -25,16 +26,17 @@ func requestHome(rq *http.Request) (router.Handler, error) {
 		return nil, router.ErrNotFound()
 	}
 
-	return &Home{
+	return &UserHome{
 		CurrentUser: currentUser(rq),
 		User:        user,
+		Groups:      repo.Groups.FindByMember(user),
 	}, nil
 }
 
-func (page *Home) CanAccess() bool {
+func (page *UserHome) CanAccess() bool {
 	return page.CurrentUser.Is(page.User)
 }
 
-func (page *Home) HandleGet(w http.ResponseWriter) error {
+func (page *UserHome) HandleGet(w http.ResponseWriter) error {
 	return router.ExecuteTemplate(w, "user/home.html", page)
 }

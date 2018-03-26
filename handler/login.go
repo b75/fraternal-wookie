@@ -68,5 +68,5 @@ func (page *Login) HandlePost(w http.ResponseWriter, rq *http.Request) error {
 	}
 	http.SetCookie(w, cookie)
 
-	return router.Redirect(fmt.Sprintf("/home?Username=%s", user.Username), http.StatusFound)
+	return router.Redirect(fmt.Sprintf("/userhome?Username=%s", user.Username), http.StatusFound)
 }

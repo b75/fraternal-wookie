@@ -1,0 +1,37 @@
+{{template "header.html"}}
+
+{{template "menu.html" .CurrentUser}}
+
+<div class="ui center aligned main container">
+
+	<h3 class="ui header"><i class="users icon"></i> {{.Group.Name}}</h3>
+
+	<div class="ui horizontal divider"> <i class="users icon"></i> </div>
+
+	<div class="ui grid">
+		<div class="four wide left aligned column">
+			<h4 class="ui top attached header"><i class="user icon"></i> Members</h4>
+			<div class="ui attached segment">
+				<div class="ui relaxed selection list">
+					{{range .Members}}
+					<a class="item" href="mailto:{{.Email}}">
+						<i class="envelope middle aligned icon"></i>
+						<div class="content">
+							<div class="header">{{.Username}}</div>
+						</div>
+					</a>
+					{{end}}
+				</div>
+			</div>
+		</div>
+		<div class="eight wide column">
+			<div class="ui raised olive segment">
+				<p>{{.Group.Description}}</p>
+			</div>
+		</div>
+		<div class="four wide column"></div>
+	</div>
+
+</div>
+
+{{template "footer.html"}}
