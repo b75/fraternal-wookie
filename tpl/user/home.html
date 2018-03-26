@@ -12,7 +12,7 @@
 		<div class="four wide left aligned column">
 			<h4 class="ui top attached header"><i class="users icon"></i> My groups</h4>
 			<div class="ui attached segment">
-				<div class="ui relaxed animated list">
+				<div class="ui relaxed {{if .Groups}}animated{{end}} list">
 					{{range .Groups}}
 					<a class="item" href="/grouphome?Id={{.Id}}">
 						<i class="users middle aligned icon"></i>
@@ -21,6 +21,13 @@
 							<div class="description">{{.Description}}</div>
 						</div>
 					</a>
+					{{else}}
+					<div class="item">
+						<div class="content">
+							<div class="header">No groups</div>
+							<div class="blue description">You don't currently belong to any groups <i class="frown icon"></i> But don't worry, maybe someone will invite you <i class="smile icon"></i></div>
+						</div>
+					</div>
 					{{end}}
 				</div>
 			</div>
