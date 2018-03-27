@@ -2,6 +2,7 @@
 
 // onload
 $(function() {
+
 	$(".js-post-link").on("click", function(event) {
 		event.preventDefault();
 
@@ -24,4 +25,7 @@ $(function() {
 			alert(xhr.responseText ? xhr.responseText : "Operation failed");
 		});
 	});
+
+	$(".tabular.menu .item").tab();
+
 });

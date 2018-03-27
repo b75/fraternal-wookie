@@ -29,6 +29,19 @@ func (r *groupRepo) Find(id int64) *model.Group {
 	return group
 }
 
+func (r *groupRepo) IsMember(group *model.Group, user *model.User) bool {
+	if group == nil || user == nil {
+		return false
+	}
+
+	var exists bool
+	if err := r.db.QueryRow("SELECT EXISTS(SELECT username FROM work_group_member WHERE group_id = $1 AND username = $2)", group.Id, user.Username).Scan(&exists); err != nil {
+		panic(err)
+	}
+
+	return exists
+}
+
 func (r *groupRepo) FindByMember(member *model.User) model.Groups {
 	groups := model.Groups{}
 

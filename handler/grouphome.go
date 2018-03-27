@@ -17,6 +17,7 @@ type GroupHome struct {
 	Group       *model.Group
 	Admin       *model.User
 	Members     model.Users
+	Messages    model.GroupMessages
 }
 
 func requestGroupHome(rq *http.Request) (router.Handler, error) {
@@ -32,6 +33,7 @@ func requestGroupHome(rq *http.Request) (router.Handler, error) {
 		Group:       group,
 		Admin:       repo.Users.FindByUsername(group.Admin),
 		Members:     repo.Groups.Members(group),
+		Messages:    repo.GroupMessages.FindByGroup(group),
 	}, nil
 }
 

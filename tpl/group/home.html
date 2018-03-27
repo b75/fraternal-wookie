@@ -9,6 +9,7 @@
 	<div class="ui horizontal divider"> <i class="users icon"></i> </div>
 
 	<div class="ui grid">
+
 		<div class="four wide left aligned column">
 			<h4 class="ui top attached header"><i class="user icon"></i> Members</h4>
 			<div class="ui attached segment">
@@ -24,11 +25,42 @@
 				</div>
 			</div>
 		</div>
-		<div class="eight wide column">
-			<div class="ui raised olive segment">
-				<p>{{.Group.Description}}</p>
+
+		<div class="eight wide left aligned column">
+			<div class="ui tabular menu">
+				<div class="active item" data-tab="feed">Feed</div>
+				<div class="item" data-tab="chat">Chat</div>
+			</div>
+			<div class="ui active tab" data-tab="feed">
+				<div class="ui raised olive segment">
+					<p>{{.Group.Description}}</p>
+				</div>
+			</div>
+			<div class="ui tab" data-tab="chat">
+				<div class="ui comments">
+					{{range .Messages}}
+					<div class="comment">
+						<div class="content">
+							<a class="author">{{.Username}}</a>
+							<div class="metadata">
+								<span class="date">{{.Ctime}}</span>
+							</div>
+							<div class="text">{{.Message}}</div>
+						</div>
+					</div>
+					{{end}}
+				</div>
+				<form class="ui reply form" method="post" action="/groupchat/new?Id={{.Group.Id}}">
+					<div class="field">
+						<textarea rows="2" name="Message"></textarea>
+					</div>
+					<button type="submit" class="ui blue labeled submit icon button">
+						<i class="icon edit"></i> Reply
+					</button>
+				</form>
 			</div>
 		</div>
+
 		<div class="four wide left aligned column">
 			<h4 class="ui top attached header"><i class="smile icon"></i> Benevolent Dictator for Life</h4>
 			<div class="ui attached segment">
@@ -39,7 +71,6 @@
 			</div>
 		</div>
 	</div>
-
 </div>
 
 {{template "footer.html"}}
