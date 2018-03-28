@@ -5,7 +5,9 @@ import (
 	"database/sql"
 	"encoding/hex"
 	"errors"
+	"time"
 
+	"github.com/b75/fraternal-wookie/conf"
 	"github.com/b75/fraternal-wookie/model"
 )
 
@@ -53,5 +55,12 @@ func (r *sessionRepo) MakeForUser(user *model.User) (*model.Session, error) {
 
 func (r *sessionRepo) Delete(id string) error {
 	_, err := r.db.Exec("DELETE FROM session WHERE id = $1", id)
+	return err
+}
+
+func (r *sessionRepo) DeleteExpired() error {
+	c := conf.Get()
+	before := time.Now().Add(-time.Duration(c.Session.ExpireHours) * time.Hour)
+	_, err := r.db.Exec("DELETE FROM session WHERE ctime < $1", before)
 	return err
 }

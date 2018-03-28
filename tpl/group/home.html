@@ -50,13 +50,14 @@
 					</div>
 					{{end}}
 				</div>
-				<form class="ui reply form" method="post" action="/groupchat/new?Id={{.Group.Id}}">
+				<form id="group-chat-message-form" class="ui reply form" method="post" action="/groupchat/new?Id={{.Group.Id}}" data-next="reload">
 					<div class="field">
 						<textarea rows="2" name="Message"></textarea>
 					</div>
 					<button type="submit" class="ui blue labeled submit icon button">
 						<i class="icon edit"></i> Reply
 					</button>
+					<div class="ui error message"></div>
 				</form>
 			</div>
 		</div>

@@ -26,6 +26,9 @@ func main() {
 	router.LoadTemplates(c.TplDir())
 	router.ReloadTemplates = c.ReloadTemplates
 	repo.Initialize(c.Db)
+	if err := repo.Sessions.DeleteExpired(); err != nil {
+		log.Printf("error deleting expired sessions: %v", err)
+	}
 
 	fs := http.FileServer(http.Dir(c.StaticDir()))
 	http.Handle("/assets/", http.StripPrefix("/assets/", fs))

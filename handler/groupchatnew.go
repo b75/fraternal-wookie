@@ -39,11 +39,12 @@ func (page *GroupChatNew) CanAccess() bool {
 }
 
 func (page *GroupChatNew) HandlePost(w http.ResponseWriter, rq *http.Request) error {
-	if err := rq.ParseForm(); err != nil {
+	form, err := router.ParseJsonForm(rq)
+	if err != nil {
 		return router.ErrBadRequest(err)
 	}
 
-	msg := trim(rq.PostForm.Get("Message"))
+	msg := form.Get("Message")
 	if msg == "" {
 		return router.ErrBadRequest(errors.New("required: Message"))
 	}
