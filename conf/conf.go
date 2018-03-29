@@ -19,8 +19,10 @@ type Config struct {
 }
 
 type SessionConfig struct {
-	Domain      string
-	ExpireHours uint
+	Https            bool
+	Domain           string
+	ExpireHours      uint
+	AllowedReferrers []string
 }
 
 func (c *Config) StaticDir() string {

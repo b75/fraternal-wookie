@@ -65,6 +65,7 @@ func (page *Login) HandlePost(w http.ResponseWriter, rq *http.Request) error {
 		Path:    "/",
 		Domain:  c.Session.Domain,
 		Expires: time.Now().Add(time.Duration(c.Session.ExpireHours) * time.Hour),
+		Secure:  c.Session.Https,
 	}
 	http.SetCookie(w, cookie)
 

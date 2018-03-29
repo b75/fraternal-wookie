@@ -2,9 +2,11 @@ package handler
 
 import (
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 
+	"github.com/b75/fraternal-wookie/conf"
 	"github.com/b75/fraternal-wookie/model"
 	"github.com/b75/fraternal-wookie/repo"
 )
@@ -14,6 +16,30 @@ func trim(s string) string {
 }
 
 func currentUser(rq *http.Request) *model.User {
+	referer, err := url.Parse(rq.Header.Get("Referer"))
+	if err != nil {
+		return nil
+	}
+
+	sc := conf.Get().Session
+	if sc.Https && referer.Scheme != "https" {
+		return nil
+	} else if referer.Scheme != "http" {
+		return nil
+	}
+
+	allowed := false
+	for _, ref := range sc.AllowedReferrers {
+		if referer.Host == ref {
+			allowed = true
+			break
+		}
+	}
+
+	if !allowed {
+		return nil
+	}
+
 	cookie, err := rq.Cookie("session")
 	if err != nil {
 		return nil
