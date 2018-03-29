@@ -11,5 +11,5 @@ type Group struct {
 	Ctime       time.Time
 	Name        string
 	Description string
-	Admin       string
+	Admin       int64
 }

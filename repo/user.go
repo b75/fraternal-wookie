@@ -11,10 +11,23 @@ type userRepo struct {
 	db *sql.DB
 }
 
+func (r *userRepo) Find(id int64) *model.User {
+	user := &model.User{}
+
+	if err := r.db.QueryRow("SELECT id, username, email FROM wookie WHERE id = $1", id).Scan(&user.Id, &user.Username, &user.Email); err != nil {
+		if err != sql.ErrNoRows {
+			panic(err)
+		}
+		return nil
+	}
+
+	return user
+}
+
 func (r *userRepo) FindByUsername(username string) *model.User {
 	user := &model.User{}
 
-	if err := r.db.QueryRow("SELECT username, email FROM wookie WHERE username = $1", username).Scan(&user.Username, &user.Email); err != nil {
+	if err := r.db.QueryRow("SELECT id, username, email FROM wookie WHERE username = $1", username).Scan(&user.Id, &user.Username, &user.Email); err != nil {
 		if err != sql.ErrNoRows {
 			panic(err)
 		}
@@ -30,7 +43,7 @@ func (r *userRepo) UserPasswordIs(user *model.User, password string) bool {
 	}
 
 	comp := ""
-	if err := r.db.QueryRow("SELECT password FROM wookie WHERE username = $1", user.Username).Scan(&comp); err != nil {
+	if err := r.db.QueryRow("SELECT password FROM wookie WHERE id = $1", user.Id).Scan(&comp); err != nil {
 		if err != sql.ErrNoRows {
 			panic(err)
 		}

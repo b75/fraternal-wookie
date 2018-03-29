@@ -9,9 +9,9 @@ import (
 var expireHours uint
 
 type Session struct {
-	Id       string
-	Ctime    time.Time
-	Username string
+	Id     string
+	Ctime  time.Time
+	UserId int64
 }
 
 func (s *Session) Expired() bool {

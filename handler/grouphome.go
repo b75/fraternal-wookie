@@ -31,7 +31,7 @@ func requestGroupHome(rq *http.Request) (router.Handler, error) {
 	return &GroupHome{
 		CurrentUser: currentUser(rq),
 		Group:       group,
-		Admin:       repo.Users.FindByUsername(group.Admin),
+		Admin:       repo.Users.Find(group.Admin),
 		Members:     repo.Groups.Members(group),
 		Messages:    repo.GroupMessages.FindByGroup(group),
 	}, nil

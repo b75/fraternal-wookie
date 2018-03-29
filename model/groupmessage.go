@@ -7,9 +7,9 @@ import (
 type GroupMessages []*GroupMessage
 
 type GroupMessage struct {
-	Id       int64
-	GroupId  int64
-	Username string
-	Ctime    time.Time
-	Message  string
+	Id      int64
+	GroupId int64
+	UserId  int64
+	Ctime   time.Time
+	Message string
 }

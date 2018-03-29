@@ -30,7 +30,7 @@ func requestGroupChatNew(rq *http.Request) (router.Handler, error) {
 	return &GroupChatNew{
 		CurrentUser: currentUser(rq),
 		Group:       group,
-		Admin:       repo.Users.FindByUsername(group.Admin),
+		Admin:       repo.Users.Find(group.Admin),
 	}, nil
 }
 
@@ -50,9 +50,9 @@ func (page *GroupChatNew) HandlePost(w http.ResponseWriter, rq *http.Request) er
 	}
 
 	gm := &model.GroupMessage{
-		GroupId:  page.Group.Id,
-		Username: page.CurrentUser.Username,
-		Message:  msg,
+		GroupId: page.Group.Id,
+		UserId:  page.CurrentUser.Id,
+		Message: msg,
 	}
 
 	if err := repo.GroupMessages.Insert(gm); err != nil {

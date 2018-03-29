@@ -18,7 +18,7 @@ type sessionRepo struct {
 func (r *sessionRepo) Find(id string) *model.Session {
 	session := &model.Session{}
 
-	if err := r.db.QueryRow("SELECT id, ctime, username FROM session WHERE id = $1", id).Scan(&session.Id, &session.Ctime, &session.Username); err != nil {
+	if err := r.db.QueryRow("SELECT id, ctime, user_id FROM session WHERE id = $1", id).Scan(&session.Id, &session.Ctime, &session.UserId); err != nil {
 		if err != sql.ErrNoRows {
 			panic(err)
 		}
@@ -42,11 +42,11 @@ func (r *sessionRepo) MakeForUser(user *model.User) (*model.Session, error) {
 	hex.Encode(key, b)
 
 	session := &model.Session{
-		Id:       string(key),
-		Username: user.Username,
+		Id:     string(key),
+		UserId: user.Id,
 	}
 
-	if _, err := r.db.Exec("INSERT INTO session (id, username) VALUES($1, $2)", session.Id, session.Username); err != nil {
+	if _, err := r.db.Exec("INSERT INTO session (id, user_id) VALUES($1, $2)", session.Id, session.UserId); err != nil {
 		return nil, err
 	}
 

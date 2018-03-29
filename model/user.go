@@ -1,8 +1,10 @@
 package model
 
 type User struct {
+	Id       int64
 	Username string
 	Email    string
+	Name     string
 }
 
 type Users []*User
@@ -12,7 +14,7 @@ func (u *User) Is(other *User) bool {
 		return false
 	}
 
-	return u.Username == other.Username
+	return u.Id == other.Id
 }
 
 func (us Users) Contain(user *User) bool {
@@ -21,7 +23,7 @@ func (us Users) Contain(user *User) bool {
 	}
 
 	for _, u := range us {
-		if u.Username == user.Username {
+		if u.Id == user.Id {
 			return true
 		}
 	}

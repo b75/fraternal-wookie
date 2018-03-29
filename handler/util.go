@@ -50,7 +50,7 @@ func currentUser(rq *http.Request) *model.User {
 		return nil
 	}
 
-	return repo.Users.FindByUsername(session.Username)
+	return repo.Users.Find(session.UserId)
 }
 
 func parseId(s string) int64 {

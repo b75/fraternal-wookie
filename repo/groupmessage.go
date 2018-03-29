@@ -17,7 +17,7 @@ func (r *groupMessageRepo) FindByGroup(group *model.Group) model.GroupMessages {
 		return msgs
 	}
 
-	rows, err := r.db.Query("SELECT id, ctime, group_id, username, message FROM work_group_message WHERE group_id = $1 ORDER BY ctime", group.Id)
+	rows, err := r.db.Query("SELECT id, ctime, group_id, user_id, message FROM work_group_message WHERE group_id = $1 ORDER BY ctime", group.Id)
 	if err != nil {
 		panic(err)
 	}
@@ -29,7 +29,7 @@ func (r *groupMessageRepo) FindByGroup(group *model.Group) model.GroupMessages {
 			&msg.Id,
 			&msg.Ctime,
 			&msg.GroupId,
-			&msg.Username,
+			&msg.UserId,
 			&msg.Message,
 		); err != nil {
 			panic(err)
@@ -47,7 +47,7 @@ func (r *groupMessageRepo) FindByGroup(group *model.Group) model.GroupMessages {
 func (r *groupMessageRepo) Insert(gm *model.GroupMessage) error {
 	var id int64
 
-	if err := r.db.QueryRow("INSERT INTO work_group_message (group_id, username, message) VALUES ($1, $2, $3) RETURNING id", gm.GroupId, gm.Username, gm.Message).Scan(&id); err != nil {
+	if err := r.db.QueryRow("INSERT INTO work_group_message (group_id, user_id, message) VALUES ($1, $2, $3) RETURNING id", gm.GroupId, gm.UserId, gm.Message).Scan(&id); err != nil {
 		return err
 	}
 	gm.Id = id
