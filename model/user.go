@@ -4,7 +4,6 @@ type User struct {
 	Id       int64
 	Username string
 	Email    string
-	Name     string
 }
 
 type Users []*User

@@ -6,9 +6,9 @@ import (
 	"net/http"
 
 	_ "github.com/b75/fraternal-wookie/api"
+	"github.com/b75/fraternal-wookie/apirouter"
 	"github.com/b75/fraternal-wookie/conf"
 	"github.com/b75/fraternal-wookie/repo"
-	"github.com/b75/fraternal-wookie/router"
 )
 
 var configFile string
@@ -25,7 +25,7 @@ func main() {
 
 	repo.Initialize(c.Db)
 
-	http.HandleFunc("/", router.RootHandler)
+	http.HandleFunc("/", apirouter.RootHandler)
 
 	log.Print("listening on 8081")
 

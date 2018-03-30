@@ -3,34 +3,38 @@ package api
 import (
 	"net/http"
 
+	"github.com/b75/fraternal-wookie/apirouter"
 	"github.com/b75/fraternal-wookie/model"
-	"github.com/b75/fraternal-wookie/router"
+	"github.com/b75/fraternal-wookie/repo"
 )
 
 func init() {
-	router.RegisterHandler("/user", requestUser)
+	apirouter.RegisterHandler("/user", requestUser)
 }
 
 type User struct {
 	CurrentUser *model.User
+	User        *model.User
 }
 
-func requestUser(rq *http.Request) (router.Handler, error) {
+func requestUser(rq *http.Request) (apirouter.Handler, error) {
+	query := rq.URL.Query()
+
+	user := repo.Users.Find(parseId(query.Get("Id")))
+	if user == nil {
+		return nil, apirouter.ErrNotFound()
+	}
+
 	return &User{
 		CurrentUser: currentUser(rq),
+		User:        user,
 	}, nil
 }
 
 func (page *User) CanAccess() bool {
-	return page.CurrentUser != nil // TODO acl
+	return page.CurrentUser.Is(page.User)
 }
 
 func (page *User) HandleGet(w http.ResponseWriter) error {
-	if page.CurrentUser == nil {
-		w.Write([]byte("nil"))
-	} else {
-		w.Write([]byte(page.CurrentUser.Username))
-	}
-
-	return nil
+	return apirouter.JsonResponse(w, page.User)
 }

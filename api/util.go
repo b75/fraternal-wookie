@@ -7,6 +7,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
+	"log"
 	"net/http"
 	"regexp"
 	"strconv"
@@ -38,12 +39,12 @@ type rawWebToken struct {
 }
 
 var ErrAuthMacMismatch error = errors.New("hmac mismatch")
-var ErrAuthHeaderTyp error = errors.New("auth header: unsupported typ")
-var ErrAuthHeaderAlg error = errors.New("auth header: unsupported alg")
-var ErrAuthPayloadIssuer error = errors.New("auth payload: untrusted issuer")
-var ErrAuthPayloadAudience error = errors.New("auth payload: unrecognized audience")
-var ErrAuthPayloadSubjectNotFound error = errors.New("auth payload: subject not found")
-var ErrAuthUserSecretNotSet error = errors.New("auth: user secret not set")
+var ErrAuthHeaderTyp error = errors.New("header: unsupported typ")
+var ErrAuthHeaderAlg error = errors.New("header: unsupported alg")
+var ErrAuthPayloadIssuer error = errors.New("payload: untrusted issuer")
+var ErrAuthPayloadAudience error = errors.New("payload: unrecognized audience")
+var ErrAuthPayloadSubjectNotFound error = errors.New("payload: subject not found")
+var ErrAuthUserSecretNotSet error = errors.New("user secret not set")
 
 func (r *rawWebToken) String() string {
 	return string(r.header) + "." + string(r.payload) + "." + string(r.signature)
@@ -148,6 +149,7 @@ type WebToken struct {
 func currentUser(rq *http.Request) *model.User {
 	parts := tokenExp.FindStringSubmatch(rq.Header.Get("Authorization"))
 	if len(parts) != 4 {
+		log.Printf("auth: invalid Authorization header: '%s'", rq.Header.Get("Authorization"))
 		return nil
 	}
 
@@ -159,6 +161,7 @@ func currentUser(rq *http.Request) *model.User {
 
 	token, err := raw.Token()
 	if err != nil {
+		log.Printf("auth: %v", err)
 		return nil
 	}
 
