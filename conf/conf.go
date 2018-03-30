@@ -15,6 +15,7 @@ type Config struct {
 	BaseDir         string
 	Db              string
 	Session         SessionConfig
+	Api             ApiConfig
 	ReloadTemplates bool
 }
 
@@ -23,6 +24,12 @@ type SessionConfig struct {
 	Domain           string
 	ExpireHours      uint
 	AllowedReferrers []string
+}
+
+type ApiConfig struct {
+	Secret       string
+	AuthIssuer   string
+	AuthAudience string
 }
 
 func (c *Config) StaticDir() string {

@@ -44,6 +44,12 @@ func RegisterHandler(path string, handleFunc func(*http.Request) (Handler, error
 }
 
 func RootHandler(w http.ResponseWriter, rq *http.Request) {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Printf("recover: %v", r)
+			http.Error(w, "internal server error", http.StatusInternalServerError)
+		}
+	}()
 	switch rq.Method {
 	case "GET":
 		handleGet(w, rq)

@@ -53,3 +53,19 @@ func (r *userRepo) UserPasswordIs(user *model.User, password string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(comp), []byte(password))
 	return err == nil
 }
+
+func (r *userRepo) Secret(user *model.User) string {
+	if user == nil {
+		return ""
+	}
+
+	secret := ""
+	if err := r.db.QueryRow("SELECT secret FROM wookie WHERE id = $1", user.Id).Scan(&secret); err != nil {
+		if err != sql.ErrNoRows {
+			panic(err)
+		}
+		return ""
+	}
+
+	return secret
+}
