@@ -3,6 +3,8 @@
 // onload
 $(function() {
 
+	Token.load();
+
 	$(".js-post-link").on("click", function(event) {
 		event.preventDefault();
 
@@ -22,7 +24,7 @@ $(function() {
 					break;
 			}
 		}).fail(function(xhr) {
-			alert(xhr.responseText ? xhr.responseText : "Operation failed");
+			Util.handleFail(xhr.responseText ? xhr.responseText : xhr);
 		});
 	});
 

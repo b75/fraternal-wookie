@@ -2,7 +2,10 @@
 
 var Util = (function() {
 	return {
-		postJsonForm(form) {
+		handleFail: function(error) {
+			console.error(error);
+		},
+		postJsonForm: function(form) {
 			form = $(form);
 			if (!form.length) {
 				return;

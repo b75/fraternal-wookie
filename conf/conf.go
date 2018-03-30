@@ -30,6 +30,7 @@ type ApiConfig struct {
 	Secret       string
 	AuthIssuer   string
 	AuthAudience string
+	Expiry       uint64
 }
 
 func (c *Config) StaticDir() string {

@@ -13,8 +13,7 @@ func init() {
 }
 
 type User struct {
-	CurrentUser *model.User
-	User        *model.User
+	User *model.User
 }
 
 func requestUser(rq *http.Request) (apirouter.Handler, error) {
@@ -26,13 +25,12 @@ func requestUser(rq *http.Request) (apirouter.Handler, error) {
 	}
 
 	return &User{
-		CurrentUser: currentUser(rq),
-		User:        user,
+		User: user,
 	}, nil
 }
 
-func (page *User) CanAccess() bool {
-	return page.CurrentUser.Is(page.User)
+func (page *User) CanAccess(current *model.User) bool {
+	return current.Is(page.User)
 }
 
 func (page *User) HandleGet(w http.ResponseWriter) error {

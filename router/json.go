@@ -21,7 +21,6 @@ type jsonField struct {
 	Value string `json:"value"`
 }
 
-// TODO remove
 func JsonResponse(w http.ResponseWriter, data interface{}) error {
 	b, err := json.Marshal(data)
 	if err != nil {

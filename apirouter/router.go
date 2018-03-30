@@ -6,6 +6,9 @@ import (
 	"net/http"
 	"strings"
 	"sync"
+
+	"github.com/b75/fraternal-wookie/model"
+	"github.com/b75/fraternal-wookie/token"
 )
 
 const (
@@ -19,7 +22,7 @@ const (
 var registerMutex *sync.Mutex = &sync.Mutex{}
 
 type Handler interface {
-	CanAccess() bool
+	CanAccess(*model.User) bool
 }
 
 type GetHandler interface {
@@ -85,7 +88,7 @@ func handleGet(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	if !h.CanAccess() {
+	if !h.CanAccess(token.Authenticate(rq)) {
 		forbidden(w)
 		return
 	}
@@ -115,7 +118,7 @@ func handlePost(w http.ResponseWriter, rq *http.Request) {
 		return
 	}
 
-	if !h.CanAccess() {
+	if !h.CanAccess(token.Authenticate(rq)) {
 		forbidden(w)
 		return
 	}
