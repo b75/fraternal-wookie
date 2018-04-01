@@ -3,8 +3,8 @@
 // onload
 $(function() {
 
-	$.when(Token.load()).fail(function(error) {
-		console.error(error);
+	$.when(Token.load()).then(null, function(error) {
+		console.error("token load error:", error);
 	});
 	if (!Api.setUrl($("body").data("api-url"))) {
 		console.error("error setting api url");

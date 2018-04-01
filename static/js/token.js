@@ -44,8 +44,12 @@ var Token = (function() {
 				url: "/token",
 				timeout: 5000,
 			}).done(function(response) {
-				if (typeof response !== "object" || response.Success !== true) {
+				if (typeof response !== "object") {
 					dfd.reject(String(response));
+					return;
+				}
+				if (response.Success !== true) {
+					dfd.reject(response.Error);
 					return;
 				}
 				current = response.Result;
