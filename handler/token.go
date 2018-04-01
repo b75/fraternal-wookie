@@ -12,16 +12,18 @@ func init() {
 }
 
 type Token struct {
-	Token []byte
-	Error error
+	Token  []byte
+	Expiry int64
+	Error  error
 }
 
 func requestToken(rq *http.Request) (router.Handler, error) {
-	token, err := token.Create(currentUser(rq))
+	token, expiry, err := token.Create(currentUser(rq))
 
 	return &Token{
-		Token: token,
-		Error: err,
+		Token:  token,
+		Expiry: expiry,
+		Error:  err,
 	}, nil
 }
 
@@ -33,7 +35,10 @@ func (page *Token) HandleGet(w http.ResponseWriter) error {
 	if page.Error == nil {
 		return router.JsonResponse(w, map[string]interface{}{
 			"Success": true,
-			"Token":   string(page.Token),
+			"Result": map[string]interface{}{
+				"Token":  string(page.Token),
+				"Expiry": page.Expiry,
+			},
 		})
 	} else {
 		return router.JsonResponse(w, map[string]interface{}{

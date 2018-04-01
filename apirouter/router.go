@@ -63,16 +63,31 @@ func RootHandler(w http.ResponseWriter, rq *http.Request) {
 
 	log.Printf("%s %s", rq.Method, rq.URL.Path)
 
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-
 	switch rq.Method {
 	case "GET":
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		corsHeaders(w)
 		handleGet(w, rq)
 	case "POST":
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		corsHeaders(w)
 		handlePost(w, rq)
+	case "OPTIONS":
+		corsHeaders(w)
+		w.WriteHeader(http.StatusOK)
 	default:
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		methodNotAllowed(w)
 	}
+}
+
+func corsHeaders(w http.ResponseWriter) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Add("Vary", "Origin")
+	w.Header().Add("Vary", "Access-Control-Request-Method")
+	w.Header().Add("Vary", "Access-Control-Request-Headers")
+	w.Header().Add("Access-Control-Allow-Headers", "Content-Type, Origin, Accept, Authorization")
+	w.Header().Add("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
 }
 
 func handleGet(w http.ResponseWriter, rq *http.Request) {

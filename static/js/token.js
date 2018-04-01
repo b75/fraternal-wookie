@@ -2,51 +2,68 @@
 
 var Token = (function() {
 	var current = null;
-	var loading = false;
+	var expired = function(tokenObject) {
+		return Math.floor(Date.now() / 1000) > (tokenObject.Expiry ? tokenObject.Expiry : 0);
+	}
 
 	return {
 		get: function() {
-			if (!current) {
-				this.load();
-			}
-			return current;
+			var dfd = $.Deferred();
+
+			$.when(this.load()).then(function(result) {
+				dfd.resolve(result.Token);
+			}, function(error) {
+				dfd.reject(error);
+			});
+
+			return dfd.promise();
 		},
 
 		load: function() {
-			if (current || loading) {
-				return;
+			if (current) {
+				if (!expired(current)) {
+					return current;
+				}
+				current = null;
 			}
 
 			var fromStorage = sessionStorage.getItem("fraternal-wookie-token");
 			if (fromStorage) {
-				current = fromStorage;
-				return;
+				current = JSON.parse(fromStorage);
+				if (!expired(current)) {
+					return current;
+				}
+				sessionStorage.removeItem("fraternal-wookie-token");
+				current = null;
 			}
 
-			// TODO expiry
+			var dfd = $.Deferred();
 
-			loading = true;
 			$.ajax({
 				method: "GET",
 				url: "/token",
 				timeout: 5000,
 			}).done(function(response) {
 				if (typeof response !== "object" || response.Success !== true) {
-					Util.handleFail(response);
+					dfd.reject(String(response));
 					return;
 				}
-				current = response.Token;
-				sessionStorage.setItem("fraternal-wookie-token", response.Token);
+				current = response.Result;
+				sessionStorage.setItem("fraternal-wookie-token", JSON.stringify(response.Result));
+				dfd.resolve(response.Result);
 			}).fail(function(xhr) {
-				Util.handleFail(xhr.responseText ? xhr.ResponseText : xhr);
-			}).always(function() {
-				loading = false;
+				dfd.reject(xhr.responseText);
 			});
+
+			return dfd.promise();
 		},
 
-		clear: function() {
-			sessionStorage.removeItem("fraternal-wookie-token");
-			current = null;
+		expiry: function() {
+			if (!current) {
+				console.log("no current token");
+				return;
+			}
+			console.log("current token expires in", (current.Expiry ? current.Expiry : 0) - Math.floor(Date.now() / 1000), "seconds");
 		}
 	};
 }());

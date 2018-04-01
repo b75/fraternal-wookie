@@ -187,30 +187,29 @@ func Parse(raw []byte) (*WebToken, error) {
 	return token, nil
 }
 
-func Create(user *model.User) ([]byte, error) {
+func Create(user *model.User) ([]byte, int64, error) {
 	if user == nil {
-		return nil, errors.New("nil user")
+		return nil, 0, errors.New("nil user")
 	}
 
 	userSecret := repo.Users.Secret(user)
 	if userSecret == "" {
-		return nil, ErrAuthUserSecretNotSet
+		return nil, 0, ErrAuthUserSecretNotSet
 	}
 
-	now := time.Now()
-
 	apic := conf.Get().Api
+	expiry := time.Now().Unix() + int64(apic.Expiry)
 
 	payload := &WebTokenPayload{
 		Issuer:   apic.AuthIssuer,
 		Audience: apic.AuthAudience,
 		Subject:  strconv.FormatInt(user.Id, 10),
-		Expires:  now.Unix() + int64(apic.Expiry),
+		Expires:  expiry,
 	}
 
 	payloadJson, err := json.Marshal(payload)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
 	encodedPayload := make([]byte, base64.URLEncoding.EncodedLen(len(payloadJson)))
@@ -222,12 +221,12 @@ func Create(user *model.User) ([]byte, error) {
 
 	mac := hmac.New(sha256.New, append([]byte(apic.Secret), []byte(userSecret)...))
 	if _, err = mac.Write(msg); err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
 	signature := mac.Sum(nil)
 	encodedSignature := make([]byte, base64.URLEncoding.EncodedLen(len(signature)))
 	base64.URLEncoding.Encode(encodedSignature, signature)
 
-	return append(append(msg, 0x2e), encodedSignature...), nil
+	return append(append(msg, 0x2e), encodedSignature...), expiry, nil
 }

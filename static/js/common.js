@@ -3,7 +3,12 @@
 // onload
 $(function() {
 
-	Token.load();
+	$.when(Token.load()).then(function() {
+		console.log("token loaded");
+	});
+	if (!Api.setUrl($("body").data("api-url"))) {
+		console.error("error setting api url");
+	}
 
 	$(".js-post-link").on("click", function(event) {
 		event.preventDefault();

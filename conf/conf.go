@@ -27,6 +27,7 @@ type SessionConfig struct {
 }
 
 type ApiConfig struct {
+	Url          string
 	Secret       string
 	AuthIssuer   string
 	AuthAudience string

@@ -2,12 +2,14 @@ package router
 
 import (
 	"bytes"
-	"github.com/b75/fraternal-wookie/util"
 	"html/template"
 	"io"
 	"log"
 	"net/http"
 	"time"
+
+	"github.com/b75/fraternal-wookie/conf"
+	"github.com/b75/fraternal-wookie/util"
 )
 
 var version int64 = time.Now().Unix()
@@ -19,7 +21,8 @@ func LoadTemplates(dirname string) {
 	tplDir = dirname
 	var err error
 	fmap := template.FuncMap{
-		"V": func() int64 { return version },
+		"V":      func() int64 { return version },
+		"apiurl": func() string { return conf.Get().Api.Url },
 	}
 
 	tpls, err = util.LoadTemplates(dirname, fmap)
