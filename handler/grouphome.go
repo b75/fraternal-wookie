@@ -33,7 +33,7 @@ func requestGroupHome(rq *http.Request) (router.Handler, error) {
 		Group:       group,
 		Admin:       repo.Users.Find(group.Admin),
 		Members:     repo.Groups.Members(group),
-		Messages:    repo.GroupMessages.FindByGroup(group),
+		Messages:    repo.GroupMessages.FindByGroup(group, 0),
 	}, nil
 }
 

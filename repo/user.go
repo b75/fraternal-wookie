@@ -1,7 +1,10 @@
 package repo
 
 import (
+	"crypto/rand"
 	"database/sql"
+	"encoding/base64"
+	"errors"
 
 	"github.com/b75/fraternal-wookie/model"
 	"golang.org/x/crypto/bcrypt"
@@ -52,6 +55,23 @@ func (r *userRepo) UserPasswordIs(user *model.User, password string) bool {
 
 	err := bcrypt.CompareHashAndPassword([]byte(comp), []byte(password))
 	return err == nil
+}
+
+func (r *userRepo) GenerateSecret(user *model.User) error {
+	if user == nil {
+		return errors.New("nil user")
+	}
+
+	b := make([]byte, 64)
+	if _, err := rand.Read(b); err != nil {
+		return err
+	}
+
+	secret := make([]byte, base64.StdEncoding.EncodedLen(len(b)))
+	base64.StdEncoding.Encode(secret, b)
+
+	_, err := r.db.Exec("UPDATE wookie SET secret = $1 WHERE id = $2", string(secret), user.Id)
+	return err
 }
 
 func (r *userRepo) Secret(user *model.User) string {

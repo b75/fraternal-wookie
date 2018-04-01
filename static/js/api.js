@@ -5,26 +5,54 @@ var Api = (function() {
 
 	return {
 
-		call: function(method, url) {
+		call: function(method, url, data) {
 			var dfd = $.Deferred();
 
 			$.when(Token.get()).then(function(token) {
-				$.ajax({
-					method: method,
-					url: apiUrl + url,
-					timeout: 3000,
-					headers: {
-						Authorization: "Bearer " + token
-					}
-				}).done(function(response) {
-					if (Api.isSuccess(response)) {
-						dfd.resolve(response.Result);
-					} else {
-						dfd.reject(response.Error);
-					}
-				}).fail(function(xhr) {
-					dfd.reject(xhr.responseText);
-				});
+				switch (method) {
+					case "GET":
+						$.ajax({
+							method: "GET",
+							url: apiUrl + url,
+							timeout: 3000,
+							data: typeof data === "object" ? data : {},
+							headers: {
+								Authorization: "Bearer " + token
+							}
+						}).done(function(response) {
+							if (Api.isSuccess(response)) {
+								dfd.resolve(response.Result);
+							} else {
+								dfd.reject(response.Error);
+							}
+						}).fail(function(xhr) {
+							dfd.reject(xhr.responseJSON ? xhr.responseJSON.Error : xhr.responseText);
+						});
+						break;
+					case "POST":
+						$.ajax({
+							method: "POST",
+							url: apiUrl + url,
+							timeout: 3000,
+							data: JSON.stringify(typeof data === "object" ? data : {}),
+							contentType: "application/json; charset=utf-8",
+							dataType: "json",
+							headers: {
+								Authorization: "Bearer " + token
+							}
+						}).done(function(response) {
+							if (Api.isSuccess(response)) {
+								dfd.resolve(response.Result);
+							} else {
+								dfd.reject(response.Error);
+							}
+						}).fail(function(xhr, foo, bar, car) {
+							dfd.reject(xhr.responseJSON ? xhr.responseJSON.Error : xhr.responseText);
+						});
+						break;
+					default:
+						dfd.reject("unsupported method: " + String(method));
+				}
 			}, function(error) {
 				dfd.reject(error);
 			});
@@ -35,20 +63,29 @@ var Api = (function() {
 		get: {
 			tokenInfo: function() {
 				return Api.call("GET", "/tokeninfo");
-			}
+			},
+
+			groupMessages: function(groupId, after) {
+				return Api.call("GET", "/groupmessages", {
+					Id: String(groupId),
+					After: after ? String(after) : 0
+				});
+			},
 		},
 
-		post: {},
+		post: {
+			groupMessageNew: function(groupId, data) {
+				return Api.call("POST", "/groupmessage/new?GroupId="+String(groupId), data);
+			}
+		},
 
 		setUrl: function(url) {
 			if (apiUrl) {
 				return false;
 			}
-
 			if (typeof url !== "string" || !url) {
 				return false;
 			}
-
 			apiUrl = url;
 			return true;
 		},

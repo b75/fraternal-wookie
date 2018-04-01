@@ -16,6 +16,7 @@ type UserHome struct {
 	CurrentUser *model.User
 	User        *model.User
 	Groups      model.Groups
+	AdminGroups model.Groups
 }
 
 func requestUserHome(rq *http.Request) (router.Handler, error) {
@@ -30,6 +31,7 @@ func requestUserHome(rq *http.Request) (router.Handler, error) {
 		CurrentUser: currentUser(rq),
 		User:        user,
 		Groups:      repo.Groups.FindByMember(user),
+		AdminGroups: repo.Groups.FindByAdmin(user),
 	}, nil
 }
 

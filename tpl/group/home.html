@@ -37,9 +37,9 @@
 				</div>
 			</div>
 			<div class="ui tab" data-tab="chat">
-				<div class="ui comments">
+				<div id="group-chat" class="ui comments js-widget group-chat-widget" data-group-id="{{.Group.Id}}">
 					{{range .Messages}}
-					<div class="comment">
+					<div class="comment" data-msg-id="{{.Id}}">
 						<div class="content">
 							<a class="author">{{.UserId}}</a>
 							<div class="metadata">
@@ -50,7 +50,7 @@
 					</div>
 					{{end}}
 				</div>
-				<form id="group-chat-message-form" class="ui reply form" method="post" action="/groupchat/new?Id={{.Group.Id}}" data-next="reload">
+				<form id="group-chat-message-form" class="ui reply form" data-widget="#group-chat" data-group-id="{{.Group.Id}}">
 					<div class="field">
 						<textarea rows="2" name="Message"></textarea>
 					</div>

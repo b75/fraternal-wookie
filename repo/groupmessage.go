@@ -10,14 +10,14 @@ type groupMessageRepo struct {
 	db *sql.DB
 }
 
-func (r *groupMessageRepo) FindByGroup(group *model.Group) model.GroupMessages {
+func (r *groupMessageRepo) FindByGroup(group *model.Group, after int64) model.GroupMessages {
 	msgs := model.GroupMessages{}
 
 	if group == nil {
 		return msgs
 	}
 
-	rows, err := r.db.Query("SELECT id, ctime, group_id, user_id, message FROM work_group_message WHERE group_id = $1 ORDER BY ctime", group.Id)
+	rows, err := r.db.Query("SELECT id, ctime, group_id, user_id, message FROM work_group_message WHERE group_id = $1 AND id > $2 ORDER BY ctime", group.Id, after)
 	if err != nil {
 		panic(err)
 	}

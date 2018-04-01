@@ -42,7 +42,25 @@ $(function() {
 		},
 		onSuccess: function(event, fields) {
 			event.preventDefault();
-			Util.postJsonForm(event.target);
+
+			var form = $(event.target);
+			if (!form.length) {
+				return;
+			}
+
+			var data = {};
+			$.each(form.serializeArray(), function(i, field) {
+				data[field.name] = field.value;
+			});
+
+			Api.post.groupMessageNew(form.data("group-id"), data).done(function(result) {
+				form.find("textarea").val("");
+				$(form.data("widget")).trigger({
+					type: "js-widget-refresh"
+				})
+			}).fail(function(error) {
+				form.form("add errors", [error]);
+			});
 		},
 	});
 

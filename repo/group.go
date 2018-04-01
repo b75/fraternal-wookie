@@ -76,6 +76,40 @@ func (r *groupRepo) FindByMember(member *model.User) model.Groups {
 	return groups
 }
 
+func (r *groupRepo) FindByAdmin(admin *model.User) model.Groups {
+	groups := model.Groups{}
+
+	if admin == nil {
+		return groups
+	}
+
+	rows, err := r.db.Query("SELECT id, ctime, name, description, admin FROM work_group WHERE admin = $1", admin.Id)
+	if err != nil {
+		panic(err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		group := &model.Group{}
+		if err := rows.Scan(
+			&group.Id,
+			&group.Ctime,
+			&group.Name,
+			&group.Description,
+			&group.Admin,
+		); err != nil {
+			panic(err)
+		}
+		groups = append(groups, group)
+	}
+
+	if err = rows.Err(); err != nil {
+		panic(err)
+	}
+
+	return groups
+}
+
 func (r *groupRepo) Members(group *model.Group) model.Users {
 	members := model.Users{}
 
