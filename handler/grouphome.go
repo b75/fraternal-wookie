@@ -17,7 +17,7 @@ type GroupHome struct {
 	Group       *model.Group
 	Admin       *model.User
 	Members     model.Users
-	Messages    model.GroupMessages
+	Messages    model.GroupMessageViews
 }
 
 func requestGroupHome(rq *http.Request) (router.Handler, error) {

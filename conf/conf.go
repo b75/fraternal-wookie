@@ -27,11 +27,12 @@ type SessionConfig struct {
 }
 
 type ApiConfig struct {
-	Url          string
-	Secret       string
-	AuthIssuer   string
-	AuthAudience string
-	Expiry       uint64
+	Url            string
+	ConnectionPath string
+	Secret         string
+	AuthIssuer     string
+	AuthAudience   string
+	Expiry         uint64
 }
 
 func (c *Config) StaticDir() string {

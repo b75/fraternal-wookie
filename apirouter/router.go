@@ -34,6 +34,7 @@ type PostHandler interface {
 }
 
 var handlers map[string]func(*http.Request) (Handler, error) = make(map[string]func(*http.Request) (Handler, error))
+var connectors map[string]func(http.ResponseWriter, *http.Request) = make(map[string]func(http.ResponseWriter, *http.Request))
 
 func RegisterHandler(path string, handleFunc func(*http.Request) (Handler, error)) {
 	registerMutex.Lock()
@@ -47,11 +48,36 @@ func RegisterHandler(path string, handleFunc func(*http.Request) (Handler, error
 	}
 
 	if _, ok := handlers[path]; ok {
-		panic(fmt.Errorf("apirouter path conflict: %s", path))
+		panic(fmt.Errorf("apirouter handler conflict: %s", path))
+	}
+	if _, ok := connectors[path]; ok {
+		panic(fmt.Errorf("apirouter connector conflict: %s", path))
 	}
 
 	handlers[path] = handleFunc
 	log.Printf("handler registered for path %s", path)
+}
+
+func RegisterConnector(path string, handleFunc func(http.ResponseWriter, *http.Request)) {
+	registerMutex.Lock()
+	defer registerMutex.Unlock()
+
+	if handleFunc == nil {
+		panic(fmt.Errorf("apirouter: nil connector for path '%s'", path))
+	}
+	if !strings.HasPrefix(path, "/") {
+		panic(fmt.Errorf("apirouter: path '%s' does not begin with /", path))
+	}
+
+	if _, ok := handlers[path]; ok {
+		panic(fmt.Errorf("apirouter handler conflict: %s", path))
+	}
+	if _, ok := connectors[path]; ok {
+		panic(fmt.Errorf("apirouter connector conflict: %s", path))
+	}
+
+	connectors[path] = handleFunc
+	log.Printf("connector registered for path %s", path)
 }
 
 func RootHandler(w http.ResponseWriter, rq *http.Request) {
@@ -62,6 +88,11 @@ func RootHandler(w http.ResponseWriter, rq *http.Request) {
 	}()
 
 	log.Printf("%s %s", rq.Method, rq.URL.Path)
+
+	if f, ok := connectors[rq.URL.Path]; ok {
+		f(w, rq)
+		return
+	}
 
 	switch rq.Method {
 	case "GET":

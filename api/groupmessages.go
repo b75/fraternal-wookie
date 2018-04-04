@@ -16,7 +16,7 @@ func init() {
 type GroupMessages struct {
 	Group    *model.Group
 	Admin    *model.User
-	Messages model.GroupMessages
+	Messages model.GroupMessageViews
 }
 
 func requestGroupMessages(rq *http.Request) (apirouter.Handler, error) {

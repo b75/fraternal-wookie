@@ -21,8 +21,9 @@ func LoadTemplates(dirname string) {
 	tplDir = dirname
 	var err error
 	fmap := template.FuncMap{
-		"V":      func() int64 { return version },
-		"apiurl": func() string { return conf.Get().Api.Url },
+		"V":        func() int64 { return version },
+		"apiurl":   func() string { return conf.Get().Api.Url },
+		"connpath": func() string { return conf.Get().Api.ConnectionPath },
 	}
 
 	tpls, err = util.LoadTemplates(dirname, fmap)

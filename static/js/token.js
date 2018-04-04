@@ -68,6 +68,11 @@ var Token = (function() {
 				return;
 			}
 			console.log("current token expires in", (current.Expiry ? current.Expiry : 0) - Math.floor(Date.now() / 1000), "seconds");
+		},
+
+		clear: function() {
+			sessionStorage.removeItem("fraternal-wookie-token");
+			current = null;
 		}
 	};
 }());

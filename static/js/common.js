@@ -10,7 +10,15 @@ $(function() {
 		console.error("error setting api url");
 	}
 
-	$(".js-post-link").on("click", function(event) {
+	// TODO less retarded way to pass connection url
+	var connUrl = $("body").data("api-url").replace("http", "ws").replace("https", "ws") + $("body").data("conn-path");
+	if (!Conn.setUrl(connUrl)) {
+		console.error("error setting conn url");
+	}
+
+	Conn.connect();
+
+	$(".js-logout-link").on("click", function(event) {
 		event.preventDefault();
 
 		var link = $(this);
@@ -23,11 +31,8 @@ $(function() {
 			method: "POST",
 			url: href
 		}).done(function(response) {
-			switch (link.data("next")) {
-				case "reload":
-					location.reload(true);
-					break;
-			}
+			Token.clear();
+			location.reload(true);
 		}).fail(function(xhr) {
 			Util.handleFail(xhr.responseText ? xhr.responseText : xhr);
 		});
@@ -48,7 +53,7 @@ $(function() {
 			$.each(result, function(i, msg) {
 				var html = '<div class="comment" data-msg-id="' + msg.Id + '">';
 				html +=    ' <div class="content">';
-				html +=    '  <a class="author">' + msg.UserId  + '</a>';
+				html +=    '  <a class="author">' + msg.Username  + '</a>';
 				html +=    '   <div class="metadata">';
 				html +=    '    <span class="date">' + msg.Ctime + '</span>';
 				html +=    '   </div>';
