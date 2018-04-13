@@ -40,7 +40,7 @@ func (page *GroupMessages) CanAccess(current *model.User) bool {
 
 func (page *GroupMessages) HandleGet(w http.ResponseWriter) error {
 	for _, msg := range page.Messages {
-		msg.Message = template.HTMLEscapeString(msg.Message) // TODO do this by reflection magic in apirouter.jsonResponse
+		msg.Message = template.HTMLEscapeString(msg.Message) // TODO do this by reflection magic in apirouter.jsonResponse?
 	}
 	return apirouter.JsonResponse(w, page.Messages)
 }

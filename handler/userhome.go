@@ -22,7 +22,7 @@ type UserHome struct {
 func requestUserHome(rq *http.Request) (router.Handler, error) {
 	query := rq.URL.Query()
 
-	user := repo.Users.FindByUsername(query.Get("Username"))
+	user := repo.Users.Find(parseId(query.Get("Id")))
 	if user == nil {
 		return nil, router.ErrNotFound()
 	}

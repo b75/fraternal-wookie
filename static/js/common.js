@@ -32,10 +32,22 @@ $(function() {
 			url: href
 		}).done(function(response) {
 			Token.clear();
-			location.reload(true);
+			location.href = "/";
 		}).fail(function(xhr) {
 			Util.handleFail(xhr.responseText ? xhr.responseText : xhr);
 		});
+	});
+
+	$(".js-modal-button").on("click", function(event) {
+		event.preventDefault();
+
+		var elem = $(this);
+		var dm = elem.data("modal");
+		if (!dm) {
+			return;
+		}
+
+		$(dm).modal("show");
 	});
 
 	$(".tabular.menu .item").tab();

@@ -35,6 +35,9 @@ func (page *Login) HandleGet(w http.ResponseWriter) error {
 }
 
 func (page *Login) HandlePost(w http.ResponseWriter, rq *http.Request) error {
+	if err := checkReferer(rq); err != nil {
+		return router.ErrForbidden()
+	}
 	if err := rq.ParseForm(); err != nil {
 		return router.ErrBadRequest(err)
 	}
@@ -69,5 +72,5 @@ func (page *Login) HandlePost(w http.ResponseWriter, rq *http.Request) error {
 	}
 	http.SetCookie(w, cookie)
 
-	return router.Redirect(fmt.Sprintf("/userhome?Username=%s", user.Username), http.StatusFound)
+	return router.Redirect(fmt.Sprintf("/userhome?Id=%d", user.Id), http.StatusFound)
 }

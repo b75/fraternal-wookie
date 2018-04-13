@@ -37,7 +37,7 @@ $(function() {
 						type: "empty",
 						prompt: "Please enter a message"
 					}
-				],
+				]
 			}
 		},
 		onSuccess: function(event, fields) {
@@ -62,6 +62,31 @@ $(function() {
 				form.form("add errors", [error]);
 			});
 		},
+	});
+
+	$("#group-detail-form").form({
+		on: "blur",
+		inline: true,
+		fields: {
+			"Name": {
+				identifier: "Name",
+				rules: [
+					{
+						type: "empty",
+						prompt: "Please enter a name"
+					}
+				]
+			},
+			"Description": {
+				identifier: "Description",
+				rules: [
+					{
+						type: "empty",
+						prompt: "Please enter a description"
+					}
+				]
+			}
+		}
 	});
 
 });

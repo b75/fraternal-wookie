@@ -31,6 +31,10 @@ func (page *Logout) HandleGet(w http.ResponseWriter) error {
 }
 
 func (page *Logout) HandlePost(w http.ResponseWriter, rq *http.Request) error {
+	if err := checkReferer(rq); err != nil {
+		return router.ErrForbidden()
+	}
+
 	response := map[string]interface{}{
 		"Success": true,
 		"Msg":     "Logged out",

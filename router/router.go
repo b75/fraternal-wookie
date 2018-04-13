@@ -129,6 +129,8 @@ func handleError(w http.ResponseWriter, rq *http.Request, err error) {
 		http.Error(w, "bad request", http.StatusBadRequest)
 	case *redirectError:
 		http.Redirect(w, rq, v.url, v.status)
+	case *forbiddenError:
+		handleForbidden(w)
 	default:
 		log.Printf("internal server error: %v", v)
 		http.Error(w, "internal server error", http.StatusInternalServerError)

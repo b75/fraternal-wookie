@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"errors"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -15,17 +16,17 @@ func trim(s string) string {
 	return strings.TrimSpace(s)
 }
 
-func currentUser(rq *http.Request) *model.User {
+func checkReferer(rq *http.Request) error {
 	referer, err := url.Parse(rq.Header.Get("Referer"))
 	if err != nil {
-		return nil
+		return err
 	}
 
 	sc := conf.Get().Session
 	if sc.Https && referer.Scheme != "https" {
-		return nil
+		return errors.New("scheme mismatch")
 	} else if referer.Scheme != "http" {
-		return nil
+		return errors.New("scheme mismatch")
 	}
 
 	allowed := false
@@ -35,11 +36,14 @@ func currentUser(rq *http.Request) *model.User {
 			break
 		}
 	}
-
 	if !allowed {
-		return nil
+		return errors.New("host not allowed")
 	}
 
+	return nil
+}
+
+func currentUser(rq *http.Request) *model.User {
 	cookie, err := rq.Cookie("session")
 	if err != nil {
 		return nil

@@ -2,7 +2,6 @@ package api
 
 import (
 	"encoding/json"
-	"html/template"
 	"net/http"
 
 	"github.com/b75/fraternal-wookie/apirouter"
@@ -54,7 +53,7 @@ func (page *GroupMessageNew) HandlePost(w http.ResponseWriter, rq *http.Request)
 	msg := &model.GroupMessage{
 		GroupId: page.Group.Id,
 		UserId:  page.User.Id,
-		Message: template.HTMLEscapeString(p.Message),
+		Message: p.Message,
 	}
 
 	if err := repo.GroupMessages.Insert(msg); err != nil {

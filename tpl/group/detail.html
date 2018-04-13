@@ -1,0 +1,114 @@
+{{template "header.html"}}
+
+{{template "menu.html" .CurrentUser}}
+
+<div class="ui center aligned main container">
+
+	<h3 class="ui header"><i class="users icon"></i> {{.Group.Name}}</h3>
+
+	<div class="ui horizontal divider"> <i class="users icon"></i></div>
+
+	<div class="ui grid">
+
+		<div class="four wide left aligned column">
+			<h4 class="ui top attached header"><i class="user icon"></i> Members</h4>
+			<div class="ui attached segment">
+				<div class="ui relaxed selection list">
+					{{range .Members}}
+					<a class="item" href="mailto:{{.Email}}">
+						<i class="envelope middle aligned icon"></i>
+						<div class="content">
+							<div class="header">{{.Username}}</div>
+						</div>
+					</a>
+					{{else}}
+					<div class="item">
+						<div class="content">
+							<div class="header">No members</div>
+							<div class="blue description">There are currently no members in this group.</div>
+						</div>
+					</div>
+					{{end}}
+				</div>
+			</div>
+		</div>
+
+		<div class="eight wide left aligned column">
+			<div class="ui tabular menu">
+				<div class="active item" data-tab="detail">Detail</div>
+			</div>
+			<div class="ui active tab" data-tab="detail">
+				<div class="ui raised olive segment">
+					<table class="ui table">
+						<thead>
+							<tr>
+								<th colspan="3">{{.Group.Name}} Detail</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td><b>Name</b></td>
+								<td>{{.Group.Name}}</td>
+								<td class="right aligned">
+									<div class="ui small primary icon button js-modal-button" data-modal="#group-detail-modal">
+										<i class="edit icon"></i>
+									</div>
+								</td>
+							</tr>
+							<tr>
+								<td><b>Created</b></td>
+								<td colspan="2">{{.Group.Ctime}}</td>
+							</tr>
+							<tr>
+								<td><b>Description</b></td>
+								<td>{{.Group.Description}}</td>
+								<td class="right aligned">
+									<div class="ui small primary icon button js-modal-button" data-modal="#group-detail-modal">
+										<i class="edit icon"></i>
+									</div>
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+
+		<div class="four wide left aligned column">
+			<h4 class="ui top attached header"><i class="smile icon"></i> Benevolent Dictator for Life</h4>
+			<div class="ui attached segment">
+				<div class="content">
+					<div class="header">{{.Admin.Username}}</div>
+					<div class="description"><a href="mailto:{{.Admin.Email}}">{{.Admin.Email}}</a></div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div id="group-detail-modal" class="ui modal">
+	<i class="close icon"></i>
+	<div class="header">Group Detail</div>
+	<div class="content">
+		<div class="ui segment">
+			<form id="group-detail-form" class="ui form" data-group-id="{{.Group.Id}}">
+				<div class="field">
+					<label>Name</label>
+					<input type="text" name="Name" value="{{.Group.Name}}" placeholder="Group Name"/>
+				</div>
+				<div class="field">
+					<label>Description</label>
+					<input type="text" name="Description" value="{{.Group.Description}}" placeholder="Description"/>
+				</div>
+			</form>
+		</div>
+	</div>
+	<div class="actions">
+		<div class="ui cancel button">Cancel</div>
+		<div class="ui ok blue labeled icon button">
+			<i class="save icon"></i> Save
+		</div>
+	</div>
+</div>
+
+{{template "footer.html"}}

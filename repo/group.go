@@ -49,7 +49,7 @@ func (r *groupRepo) FindByMember(member *model.User) model.Groups {
 		return groups
 	}
 
-	rows, err := r.db.Query("SELECT g.id, g.ctime, g.name, g.description, g.admin FROM work_group g JOIN work_group_member m ON (g.id = m.group_id) WHERE m.user_id = $1", member.Id)
+	rows, err := r.db.Query("SELECT g.id, g.ctime, g.name, g.description, g.admin FROM work_group g JOIN work_group_member m ON (g.id = m.group_id) WHERE m.user_id = $1 ORDER BY g.name", member.Id)
 	if err != nil {
 		panic(err)
 	}
@@ -83,7 +83,7 @@ func (r *groupRepo) FindByAdmin(admin *model.User) model.Groups {
 		return groups
 	}
 
-	rows, err := r.db.Query("SELECT id, ctime, name, description, admin FROM work_group WHERE admin = $1", admin.Id)
+	rows, err := r.db.Query("SELECT id, ctime, name, description, admin FROM work_group WHERE admin = $1 ORDER BY name", admin.Id)
 	if err != nil {
 		panic(err)
 	}
@@ -117,7 +117,7 @@ func (r *groupRepo) Members(group *model.Group) model.Users {
 		return members
 	}
 
-	rows, err := r.db.Query("SELECT w.id, w.username, w.email FROM work_group_member m JOIN wookie w ON (m.user_id = w.id) WHERE m.group_id = $1", group.Id)
+	rows, err := r.db.Query("SELECT w.id, w.username, w.email FROM work_group_member m JOIN wookie w ON (m.user_id = w.id) WHERE m.group_id = $1 ORDER BY w.username", group.Id)
 	if err != nil {
 		panic(err)
 	}
@@ -136,4 +136,9 @@ func (r *groupRepo) Members(group *model.Group) model.Users {
 	}
 
 	return members
+}
+
+func (r *groupRepo) Update(group *model.Group) error {
+	_, err := r.db.Exec("UPDATE work_group SET name = $1, description = $2 WHERE id = $3", group.Name, group.Description, group.Id)
+	return err
 }

@@ -35,6 +35,19 @@ func ErrBadRequest(err error) *badRequestError {
 }
 
 /*
+ * 403 Forbidden
+ */
+type forbiddenError struct{}
+
+func (err *forbiddenError) Error() string {
+	return "forbidden"
+}
+
+func ErrForbidden() *forbiddenError {
+	return &forbiddenError{}
+}
+
+/*
  * Redirects, not really errors but...
  */
 type redirectError struct {
