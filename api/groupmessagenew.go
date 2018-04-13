@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/b75/fraternal-wookie/apirouter"
+	"github.com/b75/fraternal-wookie/event"
 	"github.com/b75/fraternal-wookie/model"
 	"github.com/b75/fraternal-wookie/repo"
 )
@@ -42,7 +43,6 @@ func (page *GroupMessageNew) CanAccess(current *model.User) bool {
 
 func (page *GroupMessageNew) HandlePost(w http.ResponseWriter, rq *http.Request) error {
 	p := &struct {
-		Id      int64
 		Message string
 	}{}
 
@@ -60,7 +60,16 @@ func (page *GroupMessageNew) HandlePost(w http.ResponseWriter, rq *http.Request)
 	if err := repo.GroupMessages.Insert(msg); err != nil {
 		return err
 	}
-	p.Id = msg.Id
+	broadcaster.Event(&event.NewGroupMessageEvent{
+		Group: page.Group,
+		Admin: page.Admin,
+	})
 
-	return apirouter.JsonResponse(w, p)
+	return apirouter.JsonResponse(w, &struct {
+		Id      int64
+		Message string
+	}{
+		Id:      msg.Id,
+		Message: p.Message,
+	})
 }

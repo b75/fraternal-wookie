@@ -8,10 +8,9 @@ import (
 	"sync"
 )
 
-type Event interface {
-	Type() uint64
-	CanReceive(*model.User) bool
-}
+const (
+	EventBufSize = 128
+)
 
 // TODO Listeners are kinda racy atm
 type Listener struct {
@@ -33,6 +32,7 @@ type Broadcaster struct {
 	doneChan             chan struct{}
 	registerListenerChan chan *Listener
 	removeListenerChan   chan *Listener
+	eventChan            chan Event
 	listeners            map[uint64]*Listener
 	serial               uint64
 	init                 sync.Once
@@ -43,6 +43,7 @@ func (b *Broadcaster) Start() {
 		b.doneChan = make(chan struct{})
 		b.registerListenerChan = make(chan *Listener)
 		b.removeListenerChan = make(chan *Listener)
+		b.eventChan = make(chan Event, EventBufSize)
 		b.listeners = make(map[uint64]*Listener)
 		b.serial = 1
 
@@ -66,6 +67,10 @@ func (b *Broadcaster) RemoveListener(l *Listener) {
 		return
 	}
 	b.removeListenerChan <- l
+}
+
+func (b *Broadcaster) Event(e Event) {
+	b.eventChan <- e
 }
 
 func (b *Broadcaster) run() {
@@ -98,6 +103,16 @@ mainLoop:
 				}
 			}
 
+		case e := <-b.eventChan:
+			for _, l := range b.listeners {
+				if !e.CanReceive(l.User) {
+					continue
+				}
+				if f, ok := l.callbacks[e.Type()]; ok {
+					f(e)
+				}
+			}
+
 		case listener := <-b.registerListenerChan:
 			log.Printf("register listener %d", b.serial)
 			listener.id = b.serial
@@ -118,4 +133,5 @@ mainLoop:
 	close(b.doneChan)
 	close(b.registerListenerChan)
 	close(b.removeListenerChan)
+	close(b.eventChan)
 }

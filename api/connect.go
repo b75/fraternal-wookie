@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/b75/fraternal-wookie/apirouter"
 	"github.com/b75/fraternal-wookie/event"
@@ -40,13 +42,12 @@ func connect(w http.ResponseWriter, rq *http.Request) {
 	readChan := make(chan []byte)
 	listener := &event.Listener{}
 	listener.On(event.EventTypeHeartbeat, func(e event.Event) {
-		if err := c.WriteMessage(1, []byte("heartbeat")); err != nil {
-			log.Printf("websocket write error: %v", err)
-		}
+		handleWrite(c, "heartbeat")
 	})
 	broadcaster.RegisterListener(listener)
 	defer broadcaster.RemoveListener(listener)
 
+	// TODO goroutine leak?
 	go func(rc chan<- []byte, cc chan<- struct{}) {
 		for {
 			mt, msg, err := c.ReadMessage()
@@ -68,55 +69,85 @@ connLoop:
 			break connLoop
 		case msg := <-readChan:
 			log.Printf("websocket msg: %s", string(msg))
-			if err := handleMessage(msg, listener); err != nil {
-				if werr := c.WriteMessage(1, []byte(err.Error())); werr != nil {
-					log.Printf("websocket write error: %v", werr)
-				}
-			}
+			handleMessage(msg, c, listener)
 		}
 	}
 
 	log.Printf("websocket connection closed from %s", rq.RemoteAddr)
 }
 
-func handleMessage(msg []byte, listener *event.Listener) error {
+func handleWrite(c *websocket.Conn, msg string) {
+	if err := c.WriteMessage(1, []byte(msg)); err != nil {
+		log.Printf("websocket write error: %v", err)
+	}
+}
+
+func handleMessage(msg []byte, c *websocket.Conn, listener *event.Listener) {
 	parts := strings.Fields(string(msg))
 
 	switch parts[0] {
 	case "ping":
 		if len(parts) > 1 {
-			return fmt.Errorf("pong %s", strings.Join(parts[1:], " "))
+			handleWrite(c, fmt.Sprintf("pong %s", strings.Join(parts[1:], " ")))
+			return
 		}
-		return fmt.Errorf("pong")
+		handleWrite(c, "pong")
+	case "time":
+		handleWrite(c, fmt.Sprintf("%d", time.Now().Unix()))
 	case "auth":
 		if len(parts) < 3 {
-			return fmt.Errorf("expecting: auth Bearer [TOKEN]")
+			handleWrite(c, "expecting: auth Bearer [TOKEN]")
+			return
 		}
 		tk, err := token.Parse([]byte(strings.Join(parts[1:], " ")))
 		if err != nil {
-			return err
+			handleWrite(c, err.Error())
+			return
 		}
 		if tk.User == nil {
-			return fmt.Errorf("user not found")
+			handleWrite(c, "user not found")
+			return
 		}
 
 		// TODO expiry
 		listener.User = tk.User
-		return nil
 	case "logout":
 		listener.User = nil
-		return nil
 	case "subscribe":
 		if len(parts) < 2 {
-			return fmt.Errorf("expecting: subscribe [TYPE]")
+			handleWrite(c, "expecting: subscribe [TYPE]")
+			return
 		}
-		return handleSubscribe(parts[1], parts[1:]...)
+		handleSubscribe(c, listener, parts[1], parts[2:]...)
 	default:
-		return fmt.Errorf("unknown cmd '%s'", parts[0])
+		handleWrite(c, fmt.Sprintf("unknown cmd '%s'", parts[0]))
 	}
 }
 
-func handleSubscribe(typ string, opts ...string) error {
-	// TODO
-	return nil
+func handleSubscribe(c *websocket.Conn, listener *event.Listener, typ string, opts ...string) {
+	switch typ {
+	case "new-group-message":
+		if len(opts) != 1 {
+			handleWrite(c, "expecting: new-group-message [GROUP ID]")
+			return
+		}
+		gid, err := strconv.ParseInt(opts[0], 10, 64)
+		if err != nil {
+			handleWrite(c, err.Error())
+			return
+		}
+
+		listener.On(event.EventTypeNewGroupMessage, func(e event.Event) {
+			ev, ok := e.(*event.NewGroupMessageEvent)
+			if !ok {
+				return
+			}
+			if gid != ev.Group.Id {
+				return
+			}
+			handleWrite(c, fmt.Sprintf("new-group-message %d", ev.Group.Id))
+		})
+	default:
+		handleWrite(c, fmt.Sprintf("unknown event type '%s'", typ))
+	}
 }

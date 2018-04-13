@@ -18,6 +18,10 @@ var Conn = (function() {
 			conn = new WebSocket(connUrl);
 			conn.onopen = function() {
 				console.log("socket connection open");
+				Token.get().done(function(token) {
+					Conn.send("auth Bearer " + token);
+					$("body").trigger("ws-conn-open");
+				});
 			};
 			conn.onclose = function(event) {
 				console.log("socket connection close:", event);
@@ -28,7 +32,17 @@ var Conn = (function() {
 					console.error("socket connection untrusted message:", event);
 					return;
 				}
-				console.log("socket connection message:", event.data);
+
+				var parts = String(event.data).split(" ");
+				switch (parts[0]) {
+					case "new-group-message":
+						$(".js-widget.group-chat-widget").trigger({
+							type: "ws-new-group-message",
+							group: parts[1]
+						});
+					default:
+						console.log("socket connection message:", event.data);
+				}
 			}
 			conn.onerror = function(error) {
 				console.error("socket connection error:", error);

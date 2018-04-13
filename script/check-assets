@@ -9,6 +9,7 @@ cd $THISDIR/..
 
 assets="
 static/ext/jquery-3.3.1/jquery-3.3.1.min.js
+static/ext/underscore-1.8.3/underscore-min.js
 static/ext/semantic-ui-2.3.1/semantic.min.css
 static/ext/semantic-ui-2.3.1/semantic.min.js
 static/ext/semantic-ui-2.3.1/themes/default/assets/fonts/icons.eot
