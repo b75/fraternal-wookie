@@ -43,11 +43,12 @@ func connect(w http.ResponseWriter, rq *http.Request) {
 	listener := &event.Listener{}
 	listener.On(event.EventTypeHeartbeat, func(e event.Event) {
 		handleWrite(c, "heartbeat")
+	}).On(event.EventTypeTokenExpired, func(e event.Event) {
+		handleWrite(c, "expired")
 	})
 	broadcaster.RegisterListener(listener)
 	defer broadcaster.RemoveListener(listener)
 
-	// TODO goroutine leak?
 	go func(rc chan<- []byte, cc chan<- struct{}) {
 		for {
 			mt, msg, err := c.ReadMessage()
@@ -104,15 +105,9 @@ func handleMessage(msg []byte, c *websocket.Conn, listener *event.Listener) {
 			handleWrite(c, err.Error())
 			return
 		}
-		if tk.User == nil {
-			handleWrite(c, "user not found")
-			return
-		}
-
-		// TODO expiry
-		listener.User = tk.User
+		listener.Token = tk
 	case "logout":
-		listener.User = nil
+		listener.Token = nil
 	case "subscribe":
 		if len(parts) < 2 {
 			handleWrite(c, "expecting: subscribe [TYPE]")

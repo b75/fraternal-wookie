@@ -9,6 +9,7 @@ import (
 
 const (
 	EventTypeHeartbeat uint64 = 1 + iota
+	EventTypeTokenExpired
 	EventTypeNewGroupMessage
 )
 
@@ -28,6 +29,17 @@ func (e *HeartbeatEvent) Type() uint64 {
 
 func (e *HeartbeatEvent) CanReceive(user *model.User) bool {
 	return user != nil
+}
+
+/* TokenExpired */
+type TokenExpiredEvent struct{}
+
+func (e *TokenExpiredEvent) Type() uint64 {
+	return EventTypeTokenExpired
+}
+
+func (e *TokenExpiredEvent) CanReceive(user *model.User) bool {
+	return true
 }
 
 /* NewGroupMessage */

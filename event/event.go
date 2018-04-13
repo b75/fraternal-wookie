@@ -2,10 +2,11 @@ package event
 
 import (
 	"log"
+	"runtime"
+	"sync"
 	"time"
 
-	"github.com/b75/fraternal-wookie/model"
-	"sync"
+	"github.com/b75/fraternal-wookie/token"
 )
 
 const (
@@ -16,7 +17,7 @@ const (
 type Listener struct {
 	id        uint64
 	callbacks map[uint64]func(e Event)
-	User      *model.User
+	Token     *token.WebToken
 }
 
 func (l *Listener) On(typ uint64, f func(Event)) *Listener {
@@ -88,14 +89,24 @@ mainLoop:
 			break mainLoop
 
 		case t := <-heartbeat.C:
-			log.Printf("broadcaster: %d listeners", len(b.listeners))
+			log.Printf("broadcaster: %d listeners, %d goroutines", len(b.listeners), runtime.NumGoroutine())
 
 			e := &HeartbeatEvent{
 				Time: t,
 			}
 
+			ts := t.Unix()
 			for _, l := range b.listeners {
-				if !e.CanReceive(l.User) {
+				if l.Token == nil {
+					continue
+				}
+				if l.Token.Payload.Expires < ts {
+					if f, ok := l.callbacks[EventTypeTokenExpired]; ok {
+						f(&TokenExpiredEvent{})
+					}
+					continue
+				}
+				if !e.CanReceive(l.Token.User) {
 					continue
 				}
 				if f, ok := l.callbacks[EventTypeHeartbeat]; ok {
@@ -104,8 +115,15 @@ mainLoop:
 			}
 
 		case e := <-b.eventChan:
+			ts := time.Now().Unix()
 			for _, l := range b.listeners {
-				if !e.CanReceive(l.User) {
+				if l.Token == nil {
+					continue
+				}
+				if l.Token.Payload.Expires < ts {
+					continue
+				}
+				if !e.CanReceive(l.Token.User) {
 					continue
 				}
 				if f, ok := l.callbacks[e.Type()]; ok {

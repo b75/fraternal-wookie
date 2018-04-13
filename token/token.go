@@ -26,6 +26,24 @@ const (
 
 var tokenExp *regexp.Regexp = regexp.MustCompile(`(?i:^bearer\s+([^\.]+)\.([^\.]+)\.([^\.]+)$)`)
 
+type WebTokenHeader struct {
+	Typ string `json:"typ"`
+	Alg string `json:"alg"`
+}
+
+type WebTokenPayload struct {
+	Issuer   string `json:"iss"`
+	Audience string `json:"aud"`
+	Subject  string `json:"sub"`
+	Expires  int64  `json:"exp"`
+}
+
+type WebToken struct {
+	Header  *WebTokenHeader
+	Payload *WebTokenPayload
+	User    *model.User
+}
+
 type rawWebToken struct {
 	header    []byte
 	payload   []byte
@@ -124,24 +142,6 @@ func (r *rawWebToken) Token() (*WebToken, error) {
 		Payload: tokenPayload,
 		User:    user,
 	}, nil
-}
-
-type WebTokenHeader struct {
-	Typ string `json:"typ"`
-	Alg string `json:"alg"`
-}
-
-type WebTokenPayload struct {
-	Issuer   string `json:"iss"`
-	Audience string `json:"aud"`
-	Subject  string `json:"sub"`
-	Expires  int64  `json:"exp"`
-}
-
-type WebToken struct {
-	Header  *WebTokenHeader
-	Payload *WebTokenPayload
-	User    *model.User
 }
 
 // Authorization: Bearer header.payload.signature (very restricted subset of JWT)

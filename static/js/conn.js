@@ -40,6 +40,13 @@ var Conn = (function() {
 							type: "ws-new-group-message",
 							group: parts[1]
 						});
+						break;
+					case "expired":
+						Token.clear();
+						Token.get().done(function(token) {
+							Conn.send("auth Bearer " + token);
+						});
+						break;
 					default:
 						console.log("socket connection message:", event.data);
 				}
