@@ -3,15 +3,19 @@
 var Conn = (function() {
 	var connUrl = null;
 	var conn = null;
-	return {
 
-		connect: function() {
+	return {
+		connect:	function() {
 			if (conn) {
 				return;
 			}
 
 			if (!window["WebSocket"]) {
 				console.error("websockets not supported");
+				return;
+			}
+			if (!connUrl) {
+				console.error("connection url not set");
 				return;
 			}
 
@@ -50,11 +54,23 @@ var Conn = (function() {
 					default:
 						console.log("socket connection message:", event.data);
 				}
-			}
+			};
 			conn.onerror = function(error) {
 				console.error("socket connection error:", error);
 				conn = null;
+			};
+
+		},
+
+		send: function(data) {
+			if (!conn) {
+				return "no connection";
 			}
+			if (typeof data !== "string" || !data) {
+				return "data must be non-empty string";
+			}
+			conn.send(data);
+			return true;
 		},
 
 		close: function() {
@@ -65,27 +81,7 @@ var Conn = (function() {
 			conn = null;
 		},
 
-		send: function(data) {
-			if (!conn) {
-				console.error("no connection");
-				return false;
-			}
-			if (typeof data !== "string") {
-				console.error("socket connection send: data must be of type string");
-				return false;
-			}
-			if (!data) {
-				console.error("socket connection send: empty data");
-				return false;
-			}
-			conn.send(data);
-			return true;
-		},
-
 		setUrl: function(url) {
-			if (connUrl) {
-				return false;
-			}
 			if (typeof url !== "string" || !url) {
 				return false;
 			}
@@ -93,4 +89,4 @@ var Conn = (function() {
 			return true;
 		}
 	};
-}());
+})();

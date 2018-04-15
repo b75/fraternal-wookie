@@ -7,6 +7,8 @@
 		var lastMsg= parseInt(widget.children().last().data("msg-id"));
 		var latest = lastMsg ? lastMsg : 0; 
 
+		Conn.connect();
+
 		return {
 			update: _.throttle(function() {
 				Api.get.groupMessages(group, latest).done(function(result) {

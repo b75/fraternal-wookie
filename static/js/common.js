@@ -16,8 +16,6 @@ $(function() {
 		console.error("error setting conn url");
 	}
 
-	Conn.connect();
-
 	$(".js-logout-link").on("click", function(event) {
 		event.preventDefault();
 
