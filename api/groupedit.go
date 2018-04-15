@@ -2,7 +2,6 @@ package api
 
 import (
 	"encoding/json"
-	"html/template"
 	"net/http"
 
 	"github.com/b75/fraternal-wookie/apirouter"
@@ -59,7 +58,5 @@ func (page *GroupEdit) HandlePost(w http.ResponseWriter, rq *http.Request) error
 		Admin: page.Admin,
 	})
 
-	page.Group.Name = template.HTMLEscapeString(page.Group.Name)
-	page.Group.Description = template.HTMLEscapeString(page.Group.Description) // TODO move to apirouter.jsonResponse
 	return apirouter.JsonResponse(w, page.Group)
 }

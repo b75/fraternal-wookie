@@ -1,6 +1,7 @@
 package model
 
 import (
+	"html/template"
 	"time"
 )
 
@@ -12,4 +13,9 @@ type Group struct {
 	Name        string
 	Description string
 	Admin       int64
+}
+
+func (g *Group) HtmlEscape() {
+	g.Name = template.HTMLEscapeString(g.Name)
+	g.Description = template.HTMLEscapeString(g.Description)
 }

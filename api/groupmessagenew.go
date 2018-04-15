@@ -64,11 +64,5 @@ func (page *GroupMessageNew) HandlePost(w http.ResponseWriter, rq *http.Request)
 		Admin: page.Admin,
 	})
 
-	return apirouter.JsonResponse(w, &struct {
-		Id      int64
-		Message string
-	}{
-		Id:      msg.Id,
-		Message: p.Message,
-	})
+	return apirouter.JsonResponse(w, msg)
 }
