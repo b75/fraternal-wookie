@@ -119,12 +119,12 @@ func (r *rawWebToken) Token() (*WebToken, error) {
 	}
 
 	userSecret := repo.Users.Secret(user)
-	if userSecret == "" {
+	if len(userSecret) == 0 {
 		return nil, ErrAuthUserSecretNotSet
 	}
 
 	msg := append(append(r.header, 0x2e), r.payload...)
-	mac := hmac.New(sha256.New, []byte(apic.Secret+userSecret))
+	mac := hmac.New(sha256.New, append([]byte(apic.Secret), userSecret...))
 	if _, err := mac.Write(msg); err != nil {
 		return nil, err
 	}
@@ -193,7 +193,7 @@ func Create(user *model.User) ([]byte, int64, error) {
 	}
 
 	userSecret := repo.Users.Secret(user)
-	if userSecret == "" {
+	if len(userSecret) == 0 {
 		return nil, 0, ErrAuthUserSecretNotSet
 	}
 
@@ -219,7 +219,7 @@ func Create(user *model.User) ([]byte, int64, error) {
 
 	msg := append(append(encodedHeader, 0x2e), encodedPayload...)
 
-	mac := hmac.New(sha256.New, append([]byte(apic.Secret), []byte(userSecret)...))
+	mac := hmac.New(sha256.New, append([]byte(apic.Secret), userSecret...))
 	if _, err = mac.Write(msg); err != nil {
 		return nil, 0, err
 	}

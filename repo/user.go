@@ -3,7 +3,6 @@ package repo
 import (
 	"crypto/rand"
 	"database/sql"
-	"encoding/base64"
 	"errors"
 
 	"github.com/b75/fraternal-wookie/model"
@@ -62,29 +61,26 @@ func (r *userRepo) GenerateSecret(user *model.User) error {
 		return errors.New("nil user")
 	}
 
-	b := make([]byte, 64)
-	if _, err := rand.Read(b); err != nil {
+	secret := make([]byte, 64)
+	if _, err := rand.Read(secret); err != nil {
 		return err
 	}
 
-	secret := make([]byte, base64.StdEncoding.EncodedLen(len(b)))
-	base64.StdEncoding.Encode(secret, b)
-
-	_, err := r.db.Exec("UPDATE wookie SET secret = $1 WHERE id = $2", string(secret), user.Id)
+	_, err := r.db.Exec("UPDATE wookie SET secret = $1 WHERE id = $2", secret, user.Id)
 	return err
 }
 
-func (r *userRepo) Secret(user *model.User) string {
+func (r *userRepo) Secret(user *model.User) []byte {
 	if user == nil {
-		return ""
+		return nil
 	}
 
-	secret := ""
+	secret := make([]byte, 64)
 	if err := r.db.QueryRow("SELECT secret FROM wookie WHERE id = $1", user.Id).Scan(&secret); err != nil {
 		if err != sql.ErrNoRows {
 			panic(err)
 		}
-		return ""
+		return nil
 	}
 
 	return secret
