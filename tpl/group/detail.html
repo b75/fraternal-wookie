@@ -2,9 +2,9 @@
 
 {{template "menu.html" .CurrentUser}}
 
-<div class="ui center aligned main container">
+<div class="ui center aligned main container js-widget group-detail-widget" data-group-id="{{.Group.Id}}">
 
-	<h3 class="ui header"><i class="users icon"></i> {{.Group.Name}}</h3>
+	<h3 class="ui header"><i class="users icon"></i> <span class="js-field" data-field="group-name">{{.Group.Name}}</span></h3>
 
 	<div class="ui horizontal divider"> <i class="users icon"></i></div>
 
@@ -42,13 +42,13 @@
 					<table class="ui table">
 						<thead>
 							<tr>
-								<th colspan="3">{{.Group.Name}} Detail</th>
+								<th colspan="3"><span class="js-field" data-field="group-name">{{.Group.Name}}</span> Detail</th>
 							</tr>
 						</thead>
 						<tbody>
 							<tr>
 								<td><b>Name</b></td>
-								<td>{{.Group.Name}}</td>
+								<td><span class="js-field" data-field="group-name">{{.Group.Name}}</span></td>
 								<td class="right aligned">
 									<div class="ui small primary icon button js-modal-button" data-modal="#group-detail-modal">
 										<i class="edit icon"></i>
@@ -61,7 +61,7 @@
 							</tr>
 							<tr>
 								<td><b>Description</b></td>
-								<td>{{.Group.Description}}</td>
+								<td><span class="js-field" data-field="group-description">{{.Group.Description}}</span></td>
 								<td class="right aligned">
 									<div class="ui small primary icon button js-modal-button" data-modal="#group-detail-modal">
 										<i class="edit icon"></i>

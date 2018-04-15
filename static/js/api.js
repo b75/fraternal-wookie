@@ -71,12 +71,19 @@ var Api = (function() {
 					After: after ? String(after) : 0
 				});
 			},
+
+			group: function(groupId) {
+				return Api.call("GET", "/group", {
+					Id: String(groupId)
+				});
+			}
 		},
 
 		post: {
 			groupMessageNew: function(groupId, data) {
 				return Api.call("POST", "/groupmessage/new?GroupId=" + String(groupId), data);
 			},
+
 			groupEdit: function(groupId, data) {
 				return Api.call("POST", "/group/edit?Id=" + String(groupId), data);
 			}

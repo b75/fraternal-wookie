@@ -11,6 +11,7 @@ const (
 	EventTypeHeartbeat uint64 = 1 + iota
 	EventTypeTokenExpired
 	EventTypeNewGroupMessage
+	EventTypeGroupDetailEdit
 )
 
 type Event interface {
@@ -53,5 +54,19 @@ func (e *NewGroupMessageEvent) Type() uint64 {
 }
 
 func (e *NewGroupMessageEvent) CanReceive(user *model.User) bool {
+	return user.Is(e.Admin) || repo.Groups.IsMember(e.Group, user)
+}
+
+/* GroupDetailEdit */
+type GroupDetailEditEvent struct {
+	Group *model.Group
+	Admin *model.User
+}
+
+func (e *GroupDetailEditEvent) Type() uint64 {
+	return EventTypeGroupDetailEdit
+}
+
+func (e *GroupDetailEditEvent) CanReceive(user *model.User) bool {
 	return user.Is(e.Admin) || repo.Groups.IsMember(e.Group, user)
 }

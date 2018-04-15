@@ -45,6 +45,11 @@ var Conn = (function() {
 							group: parts[1]
 						});
 						break;
+					case "group-detail-edit":
+						$(".js-widget.group-detail-widget").trigger({
+							type: "ws-group-detail-edit",
+							group: parts[1]
+						});
 					case "expired":
 						Token.clear();
 						Token.get().done(function(token) {

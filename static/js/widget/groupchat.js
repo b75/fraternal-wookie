@@ -2,7 +2,7 @@
 
 (function() {
 
-	var GroupChatWidgetController = function(widget) {
+	var groupChatWidgetController = function(widget) {
 		var group = widget.data("group-id");
 		var lastMsg= parseInt(widget.children().last().data("msg-id"));
 		var latest = lastMsg ? lastMsg : 0; 
@@ -34,7 +34,7 @@
 	$(function() {
 		$(".js-widget.group-chat-widget").each(function(i, v) {
 			var widget = $(v);
-			widget.data("controller", GroupChatWidgetController(widget));
+			widget.data("controller", groupChatWidgetController(widget));
 			$("body").on("ws-conn-open", function(event) {
 				widget.data("controller").subscribe();
 			});

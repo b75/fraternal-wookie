@@ -15,7 +15,9 @@ $(function() {
 			});
 
 			Api.post.groupEdit(form.data("group-id"), data).done(function(result) {
-				location.reload();
+				$(".js-widget.group-detail-widget").trigger({
+					type: "js-widget-refresh"
+				});
 			}).fail(function(error) {
 				Util.handleFail(error);
 			});
