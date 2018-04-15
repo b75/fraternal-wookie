@@ -6,7 +6,7 @@
 		var group = widget.data("group-id");
 		var lastMsg= parseInt(widget.children().last().data("msg-id"));
 		var latest = lastMsg ? lastMsg : 0; 
-		var tpl = _.template(Tpl.GroupMessage());
+		var tpl = _.template(Tpl.groupMessage());
 
 		Conn.connect();
 

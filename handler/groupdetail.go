@@ -17,6 +17,7 @@ type Group struct {
 	Group       *model.Group
 	Admin       *model.User
 	Members     model.Users
+	Feeds       model.GroupFeeds
 }
 
 func requestGroup(rq *http.Request) (router.Handler, error) {
@@ -32,6 +33,7 @@ func requestGroup(rq *http.Request) (router.Handler, error) {
 		Group:       group,
 		Admin:       repo.Users.Find(group.Admin),
 		Members:     repo.Groups.Members(group),
+		Feeds:       repo.GroupFeeds.FindByGroup(group, 0),
 	}, nil
 }
 

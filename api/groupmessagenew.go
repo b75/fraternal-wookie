@@ -2,7 +2,9 @@ package api
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
+	"strings"
 
 	"github.com/b75/fraternal-wookie/apirouter"
 	"github.com/b75/fraternal-wookie/event"
@@ -48,6 +50,11 @@ func (page *GroupMessageNew) HandlePost(w http.ResponseWriter, rq *http.Request)
 	decoder := json.NewDecoder(rq.Body)
 	if err := decoder.Decode(p); err != nil {
 		return apirouter.ErrBadRequest(err)
+	}
+
+	p.Message = strings.TrimSpace(p.Message)
+	if p.Message == "" {
+		return apirouter.ErrBadRequest(errors.New("required: Message"))
 	}
 
 	msg := &model.GroupMessage{

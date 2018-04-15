@@ -9,9 +9,9 @@ type GroupMessages []*GroupMessage
 
 type GroupMessage struct {
 	Id      int64
+	Ctime   time.Time
 	GroupId int64
 	UserId  int64
-	Ctime   time.Time
 	Message string
 }
 

@@ -68,7 +68,14 @@ var Api = (function() {
 			groupMessages: function(groupId, after) {
 				return Api.call("GET", "/groupmessages", {
 					Id: String(groupId),
-					After: after ? String(after) : 0
+					After: after ? String(after) : "0"
+				});
+			},
+
+			groupFeeds: function(groupId, after) {
+				return Api.call("GET", "/groupfeeds", {
+					Id: String(groupId),
+					After: after ? String(after) : "0"
 				});
 			},
 
@@ -86,6 +93,10 @@ var Api = (function() {
 
 			groupEdit: function(groupId, data) {
 				return Api.call("POST", "/group/edit?Id=" + String(groupId), data);
+			},
+
+			groupFeedNew: function(groupId, data) {
+				return Api.call("POST", "/groupfeed/new?GroupId=" + String(groupId), data);
 			}
 		},
 

@@ -42,6 +42,15 @@
 				<div class="ui raised olive segment">
 					<p>{{.Group.Description}}</p>
 				</div>
+				{{range .Feeds}}
+				<h5 class="ui top attached header">{{.Header}}</h5>
+				<div class="ui teal attached segment">
+					<p>{{.Body}}</p>
+				</div>
+				<div class="ui bottom attached segment">
+					<p>{{.Ctime}}</p>
+				</div>
+				{{end}}
 			</div>
 			<div class="ui tab" data-tab="chat">
 				<div id="group-chat" class="ui comments js-widget group-chat-widget" data-group-id="{{.Group.Id}}">

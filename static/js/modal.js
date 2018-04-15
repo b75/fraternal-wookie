@@ -23,4 +23,26 @@ $(function() {
 			});
 		}
 	});
+
+	$("#new-feed-modal").modal({
+		onApprove: function(elem) {
+			var form = $("#new-feed-form");
+			if (!form.form("is valid")) {
+				return false;
+			}
+
+			var data = {};
+			$.each(form.serializeArray(), function(i, field) {
+				data[field.name] = field.value;
+			});
+
+			Api.post.groupFeedNew(form.data("group-id"), data).done(function(result) {
+				$(".js-widget.group-feed-widget").trigger({
+					type: "js-widget-refresh"
+				});
+			}).fail(function(error) {
+				Util.handleFail(error);
+			});
+		}
+	});
 });

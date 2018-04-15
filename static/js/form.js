@@ -89,4 +89,29 @@ $(function() {
 		}
 	});
 
+	$("#new-feed-form").form({
+		on: "blur",
+		inline: true,
+		fields: {
+			"Header": {
+				identifier: "Header",
+				rules: [
+					{
+						type: "empty",
+						prompt: "Please enter a header"
+					}
+				]
+			},
+			"Body": {
+				identifier: "Body",
+				rules: [
+					{
+						type: "empty",
+						prompt: "Please enter feed body"
+					}
+				]
+			}
+		}
+	});
+
 });
