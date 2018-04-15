@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/b75/fraternal-wookie/apirouter"
-	"github.com/b75/fraternal-wookie/event"
 	"github.com/b75/fraternal-wookie/model"
 	"github.com/b75/fraternal-wookie/repo"
 )
@@ -53,10 +52,6 @@ func (page *GroupEdit) HandlePost(w http.ResponseWriter, rq *http.Request) error
 	if err := repo.Groups.Update(page.Group); err != nil {
 		return err
 	}
-	broadcaster.Event(&event.GroupDetailEditEvent{
-		Group: page.Group,
-		Admin: page.Admin,
-	})
 
 	return apirouter.JsonResponse(w, page.Group)
 }

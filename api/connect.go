@@ -142,27 +142,6 @@ func handleSubscribe(c *websocket.Conn, listener *event.Listener, typ string, op
 			}
 			handleWrite(c, fmt.Sprintf("new-group-message %d", ev.Group.Id))
 		})
-	case "group-detail-edit":
-		if len(opts) != 1 {
-			handleWrite(c, "expecting: group-detail-edit [GROUP ID]")
-			return
-		}
-		gid, err := strconv.ParseInt(opts[0], 10, 64)
-		if err != nil {
-			handleWrite(c, err.Error())
-			return
-		}
-
-		listener.On(event.EventTypeGroupDetailEdit, func(e event.Event) {
-			ev, ok := e.(*event.GroupDetailEditEvent)
-			if !ok {
-				return
-			}
-			if gid != ev.Group.Id {
-				return
-			}
-			handleWrite(c, fmt.Sprintf("group-detail-edit %d", ev.Group.Id))
-		})
 	default:
 		handleWrite(c, fmt.Sprintf("unknown event type '%s'", typ))
 	}
