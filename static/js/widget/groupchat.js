@@ -6,6 +6,7 @@
 		var group = widget.data("group-id");
 		var lastMsg= parseInt(widget.children().last().data("msg-id"));
 		var latest = lastMsg ? lastMsg : 0; 
+		var tpl = _.template(Tpl.GroupMessage());
 
 		Conn.connect();
 
@@ -16,17 +17,7 @@
 						if (msg.Id > latest) {
 							latest = msg.Id;
 						}
-
-						var html = '<div class="comment" data-msg-id="' + msg.Id + '">';
-						html +=    ' <div class="content">';
-						html +=    '  <a class="author">' + msg.Username  + '</a>';
-						html +=    '   <div class="metadata">';
-						html +=    '    <span class="date">' + msg.Ctime + '</span>';
-						html +=    '   </div>';
-						html +=    '   <div class="text">' + msg.Message + '</div>';
-						html +=    ' </div>';
-						html +=    '</div>';
-						widget.append(html);
+						widget.append(tpl(msg));
 					});
 				}).fail(function(error) {
 					Util.handleFail(error);

@@ -17,6 +17,7 @@
 		{{end}}
 		<div class="right menu">
 			{{if .}}
+			<div class="item">Logged in as {{.Username}}</div>
 			<a class="item js-logout-link" href="/logout"><i class="lock alternate icon"></i> Log out</a>
 			{{else}}
 			<a class="item" href="/login"><i class="unlock alternate icon"></i> Log in</a>
