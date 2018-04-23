@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Fraternal Wookie - Life</title>
+
+	<!-- css -->
+	<link rel="stylesheet" type="text/css" href="/assets/ext/semantic-ui-2.3.1/semantic.min.css">
+	<link rel="stylesheet" type="text/css" href="/assets/css/style.css?v={{V}}">
+
+	<!-- js -->
+	<script type="text/javascript" src="/assets/ext/jquery-3.3.1/jquery-3.3.1.min.js"></script>
+	<script type="text/javascript" src="/assets/ext/underscore-1.8.3/underscore-min.js"></script>
+	<script type="text/javascript" src="/assets/ext/semantic-ui-2.3.1/semantic.min.js"></script>
+	<script type="text/javascript" src="/assets/js/widget/life.js"></script>
+</head>
+<body>
+
+{{template "plain-menu.html"}}
+
+<div class="ui center aligned main container">
+	<h3 class="ui header"><i class="heartbeat icon"></i> Life</h3>
+
+	<div class="ui horizontal divider"> Life </div>
+
+	<div class="ui grid">
+		<div class="sixteen wide center aligned column">
+			<canvas id="life" class="life"></canvas>
+		</div>
+		<div class="four wide left aligned column"></div>
+		<div class="eight wide center aligned column">
+			<div class="js-widget life-widget" data-canvas="#life">
+				<button class="ui button life-widget run-button">Run</div>
+			</div>
+		</div>
+		<div class="four wide left aligned column"></div>
+	</div>
+</div>

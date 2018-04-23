@@ -12,3 +12,8 @@ img.logo.small {
 	width: 20px;
 	height: 32px;
 }
+
+canvas.life {
+	width: 100%;
+	border: 1px solid black;
+}
