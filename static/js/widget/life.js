@@ -30,14 +30,15 @@
 
 		var grid = [];
 		var cellSize = 10;
-		var gridWidth = 100;
-		var gridHeight = 100;
+		var gridWidth = 150;
+		var gridHeight = 150;
 
 		for (var x = 0; x < gridWidth; x++) {
 			grid[x] = [];
 			for (var y = 0; y < gridHeight; y++) {
 				grid[x][y] = {
-					alive: Math.random() < 0.3 ? true : false
+					alive: Math.random() < 0.3 ? true : false,
+					color: "blue"
 				};
 			}
 		}
@@ -50,7 +51,9 @@
 		};
 
 		var running = false;
-		var mouse = {};
+		var mouse = {
+			color: "blue"
+		};
 		var kb = {};
 		var ticker = null;
 		var origin = {
@@ -69,6 +72,7 @@
 			if (!running && (mouse.left || mouse.right)) {
 				if (mouse.x >= 0 && mouse.x < gridWidth && mouse.y >= 0 && mouse.y < gridHeight) {
 					grid[mouse.x][mouse.y].alive = mouse.left ? true : false;
+					grid[mouse.x][mouse.y].color = mouse.color;
 				}
 			}
 			ctrl.draw();
@@ -84,6 +88,7 @@
 			if (!running && (mouse.left || mouse.right)) {
 				if (mouse.x >= 0 && mouse.x < gridWidth && mouse.y >= 0 && mouse.y < gridHeight) {
 					grid[mouse.x][mouse.y].alive = mouse.left ? true : false;
+					grid[mouse.x][mouse.y].color = mouse.color;
 				}
 				ctrl.draw();
 			}
@@ -160,6 +165,7 @@
 				if (!running && (mouse.left || mouse.right)) {
 					if (mouse.x >= 0 && mouse.x < gridWidth && mouse.y >= 0 && mouse.y < gridHeight) {
 						grid[mouse.x][mouse.y].alive = mouse.left ? true : false;
+						grid[mouse.x][mouse.y].color = mouse.color;
 					}
 				}
 				ctrl.draw();
@@ -191,17 +197,35 @@
 					ctx.fillRect((tl.x - origin.x) * cellSize, (tl.y - origin.y) * cellSize, (br.x - tl.x + 1) * cellSize, (br.y - tl.y) * cellSize);
 				}
 
-				ctx.fillStyle = "#1111DD";
 				for (var x = tl.x; x <= br.x; x++) {
 					for (var y = tl.y; y < br.y; y++) {
 						if (grid[x][y].alive) {
+							switch (grid[x][y].color) {
+								case "red":
+									ctx.fillStyle = "#DD1111";
+									break;
+								case "green":
+									ctx.fillStyle = "#11DD11";
+									break;
+								default:
+									ctx.fillStyle = "#1111DD";
+							}
 							ctx.fillRect((x - origin.x) * cellSize, (y - origin.y) * cellSize, cellSize, cellSize);
 						}
 					}
 				}
 
 				if (typeof mouse.x === "number" && typeof mouse.y === "number") {
-					ctx.strokeStyle = "#00DD00";
+					switch (mouse.color) {
+						case "red":
+							ctx.strokeStyle = "#FF0000";
+							break;
+						case "green":
+							ctx.strokeStyle = "#00FF00";
+							break;
+						default:
+							ctx.strokeStyle = "#0000FF";
+					}
 					ctx.beginPath();
 					ctx.rect((mouse.x - origin.x) * cellSize, (mouse.y - origin.y) * cellSize, cellSize, cellSize);
 					ctx.stroke();
@@ -212,35 +236,108 @@
 				for (var x = 0; x < gridWidth; x++) {
 					for (var y = 0; y < gridHeight; y++) {
 						var neighbors = 0;
+						var reds = 0;
+						var greens = 0;
 						if (x < gridWidth - 1 && grid[x + 1][y].alive) {
 							neighbors++;
+							switch (grid[x + 1][y].color) {
+								case "red":
+									reds++;
+									break;
+								case "green":
+									greens++;
+									break;
+							}
 						}
 						if (x < gridWidth - 1 && y > 0 && grid[x + 1][y - 1].alive) {
 							neighbors++;
+							switch (grid[x + 1][y - 1].color) {
+								case "red":
+									reds++;
+									break;
+								case "green":
+									greens++;
+									break;
+							}
 						}
 						if (y > 0 && grid[x][y - 1].alive) {
 							neighbors++;
+							switch (grid[x][y - 1].color) {
+								case "red":
+									reds++;
+									break;
+								case "green":
+									greens++;
+									break;
+							}
 						}
 						if (x > 0 && y > 0 && grid[x - 1][y - 1].alive) {
 							neighbors++;
+							switch (grid[x - 1][y - 1].color) {
+								case "red":
+									reds++;
+									break;
+								case "green":
+									greens++;
+									break;
+							}
 						}
 						if (x > 0 && grid[x - 1][y].alive) {
 							neighbors++;
+							switch (grid[x - 1][y].color) {
+								case "red":
+									reds++;
+									break;
+								case "green":
+									greens++;
+									break;
+							}
 						}
 						if (x > 0 && y < gridHeight - 1 && grid[x - 1][y + 1].alive) {
 							neighbors++;
+							switch (grid[x - 1][y + 1].color) {
+								case "red":
+									reds++;
+									break;
+								case "green":
+									greens++;
+									break;
+							}
 						}
 						if (y < gridHeight - 1 && grid[x][y + 1].alive) {
 							neighbors++;
+							switch (grid[x][y + 1].color) {
+								case "red":
+									reds++;
+									break;
+								case "green":
+									greens++;
+									break;
+							}
 						}
 						if (x < gridWidth - 1 && y < gridHeight - 1 && grid[x + 1][y + 1].alive) {
 							neighbors++;
+							switch (grid[x + 1][y + 1].color) {
+								case "red":
+									reds++;
+									break;
+								case "green":
+									greens++;
+									break;
+							}
 						}
 
-						if (grid[x][y].alive && neighbors >= 2 && neighbors <= 3) {
+						if (grid[x][y].alive && neighbors >= 2 && neighbors <= 3) {	// survival
 							grid[x][y].nextAlive = true;
-						} else if (!grid[x][y].alive && neighbors === 3) {
+						} else if (!grid[x][y].alive && neighbors === 3) {	// birth
 							grid[x][y].nextAlive = true;
+							if (reds > greens) {
+								grid[x][y].color = "red";
+							} else if (greens > reds) {
+								grid[x][y].color = "green";
+							} else {	// does not happen w/ current rules
+								grid[x][y].color = "blue";
+							}
 						} else {
 							grid[x][y].nextAlive = false;
 						}
@@ -276,6 +373,28 @@
 				}
 				running = false;
 				clearInterval(ticker);
+			},
+
+			clear: function() {
+				if (running) {
+					return;
+				}
+				for (var x = 0; x < gridWidth; x++) {
+					for (var y = 0; y < gridHeight; y++) {
+						grid[x][y].alive = false;
+					}
+				}
+				this.draw();
+			},
+
+			setColor: function(color) {
+				switch (color) {
+				case "blue":
+				case "red":
+				case "green":
+					mouse.color = color;
+					this.draw();
+				}
 			}
 		};
 
@@ -295,11 +414,25 @@
 				if (btn.hasClass("loading")) {
 					ctrl.stop();
 					btn.removeClass("loading");
+					widget.find(".life-widget.clear-button").removeClass("disabled");
+					widget.find(".life-widget.step-button").removeClass("disabled");
 				} else {
 					ctrl.run();
 					btn.addClass("loading");
+					widget.find(".life-widget.clear-button").addClass("disabled");
+					widget.find(".life-widget.step-button").addClass("disabled");
 				}
 			});
+
+			widget.on("click", ".life-widget.clear-button", function(event) {
+				ctrl.clear();
+			}).on("click", ".life-widget.step-button", function(event) {
+				ctrl.update();
+			}).on("change", "input[name=color]", function(event) {
+				ctrl.setColor($(this).val());
+			});
+
+			widget.find("input[name=color][value=blue]").prop("checked", true);
 		});
 	});
 }());
