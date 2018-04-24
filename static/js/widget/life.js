@@ -168,12 +168,32 @@
 
 		var ctrl = {
 			draw: _.throttle(function() {
-				ctx.fillStyle = "#000000";
-				ctx.fillRect(0, 0, width, height);
+				ctx.clearRect(0, 0, width, height);
+				var tl = {
+					x: s2gx(0),
+					y: s2gy(0)
+				};
+				var br = {
+					x: s2gx(width) + 1,
+					y: s2gy(height) + 1
+				};
 
-				ctx.fillStyle = "#EEEEEE";
-				for (var x = 0; x < gridWidth; x++) {
-					for (var y = 0; y < gridHeight; y++) {
+				tl.x = tl.x > 0 ? tl.x : 0;
+				tl.x = tl.x < gridWidth - 1 ? tl.x : gridWidth - 1;
+				tl.y = tl.y > 0 ? tl.y : 0;
+				tl.y = tl.y < gridHeight - 1 ? tl.y : gridHeight - 1;
+
+				br.x = br.x < gridWidth - 1 ? br.x : gridWidth - 1;
+				br.y = br.y < gridHeight - 1 ? br.y : gridHeight - 1;
+
+				ctx.fillStyle = "#000000";
+				if (br.x >= tl.x && br.y >= tl.y) {
+					ctx.fillRect((tl.x - origin.x) * cellSize, (tl.y - origin.y) * cellSize, (br.x - tl.x + 1) * cellSize, (br.y - tl.y) * cellSize);
+				}
+
+				ctx.fillStyle = "#1111DD";
+				for (var x = tl.x; x <= br.x; x++) {
+					for (var y = tl.y; y < br.y; y++) {
 						if (grid[x][y].alive) {
 							ctx.fillRect((x - origin.x) * cellSize, (y - origin.y) * cellSize, cellSize, cellSize);
 						}
