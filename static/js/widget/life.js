@@ -194,11 +194,11 @@
 
 				ctx.fillStyle = "#000000";
 				if (br.x >= tl.x && br.y >= tl.y) {
-					ctx.fillRect((tl.x - origin.x) * cellSize, (tl.y - origin.y) * cellSize, (br.x - tl.x + 1) * cellSize, (br.y - tl.y) * cellSize);
+					ctx.fillRect((tl.x - origin.x) * cellSize, (tl.y - origin.y) * cellSize, (br.x - tl.x + 1) * cellSize, (br.y - tl.y + 1) * cellSize);
 				}
 
 				for (var x = tl.x; x <= br.x; x++) {
-					for (var y = tl.y; y < br.y; y++) {
+					for (var y = tl.y; y <= br.y; y++) {
 						if (grid[x][y].alive) {
 							switch (grid[x][y].color) {
 								case "red":
