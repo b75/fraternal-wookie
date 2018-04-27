@@ -29,15 +29,17 @@
 		canvas[0].height = height;
 
 		var grid = [];
+		var particles = [];
 		var cellSize = 10;
 		var gridWidth = 150;
 		var gridHeight = 150;
+		var updateNumber = 0;
 
 		for (var x = 0; x < gridWidth; x++) {
 			grid[x] = [];
 			for (var y = 0; y < gridHeight; y++) {
 				grid[x][y] = {
-					alive: Math.random() < 0.3 ? true : false,
+					alive: Math.random() < 0.3 ? 100 : 0,
 					color: "blue"
 				};
 			}
@@ -49,10 +51,21 @@
 		var s2gy = function(y) {
 			return Math.floor(y  / cellSize) + origin.y;
 		};
+		var life2hex = function(life) {
+			var hex = Math.floor(life * 2.55);
+			hex = hex < 0 ? 0 : hex;
+			hex = hex > 255 ? 255 : hex;
+			hex = hex.toString(16);
+			if (hex.length < 2) {
+				hex = "0" + hex;
+			}
+			return hex;
+		};
 
 		var running = false;
 		var mouse = {
-			color: "blue"
+			color: "blue",
+			tool: "draw"
 		};
 		var kb = {};
 		var ticker = null;
@@ -69,9 +82,9 @@
 			mouse.x = s2gx(x);
 			mouse.y = s2gy(y);
 
-			if (!running && (mouse.left || mouse.right)) {
+			if (!running && mouse.tool === "draw" && (mouse.left || mouse.right)) {
 				if (mouse.x >= 0 && mouse.x < gridWidth && mouse.y >= 0 && mouse.y < gridHeight) {
-					grid[mouse.x][mouse.y].alive = mouse.left ? true : false;
+					grid[mouse.x][mouse.y].alive = mouse.left ? 100 : 0;
 					grid[mouse.x][mouse.y].color = mouse.color;
 				}
 			}
@@ -85,12 +98,36 @@
 			if (event.buttons & 2) {
 				mouse.right = true;
 			}
-			if (!running && (mouse.left || mouse.right)) {
+			if (!running && mouse.tool === "draw" && (mouse.left || mouse.right)) {
 				if (mouse.x >= 0 && mouse.x < gridWidth && mouse.y >= 0 && mouse.y < gridHeight) {
-					grid[mouse.x][mouse.y].alive = mouse.left ? true : false;
+					grid[mouse.x][mouse.y].alive = mouse.left ? 100 : 0;
 					grid[mouse.x][mouse.y].color = mouse.color;
 				}
 				ctrl.draw();
+			} else if (running && mouse.tool === "bomb" && mouse.left) {
+				for (var i = 0; i < 5; i++) {
+					var cdir = Math.random() * 2 * Math.PI;
+					var cr = Math.random() * 150;
+					var cx = mouse.x * cellSize + Math.cos(cdir) * cr;
+					var cy = mouse.y * cellSize + Math.sin(cdir) * cr;
+					(function() {
+						var ccx = cx;
+						var ccy = cy;
+						setTimeout(function() {
+							for (var j = 0; j < 100; j++) {
+								var dir = Math.random() * 2 * Math.PI;
+								var velocity = Math.random() < 0.8 ? 25 : 10;
+								particles.push({
+									x: ccx,
+									y: ccy,
+									vx: Math.cos(dir) * velocity,
+									vy: Math.sin(dir) * velocity,
+									alive: 20
+								});
+							}
+						}, Math.floor(1000 + Math.random() * 500));
+					})();
+				}
 			}
 		});
 
@@ -162,9 +199,9 @@
 			if (changes) {
 				mouse.x = s2gx(mouse.px);
 				mouse.y = s2gy(mouse.py);
-				if (!running && (mouse.left || mouse.right)) {
+				if (!running && mouse.tool === "draw" && (mouse.left || mouse.right)) {
 					if (mouse.x >= 0 && mouse.x < gridWidth && mouse.y >= 0 && mouse.y < gridHeight) {
-						grid[mouse.x][mouse.y].alive = mouse.left ? true : false;
+						grid[mouse.x][mouse.y].alive = mouse.left ? 100 : 0;
 						grid[mouse.x][mouse.y].color = mouse.color;
 					}
 				}
@@ -197,22 +234,35 @@
 					ctx.fillRect((tl.x - origin.x) * cellSize, (tl.y - origin.y) * cellSize, (br.x - tl.x + 1) * cellSize, (br.y - tl.y + 1) * cellSize);
 				}
 
+				ctx.strokeStyle = "#DDDDDD";
+				ctx.beginPath()
 				for (var x = tl.x; x <= br.x; x++) {
 					for (var y = tl.y; y <= br.y; y++) {
 						if (grid[x][y].alive) {
 							switch (grid[x][y].color) {
 								case "red":
-									ctx.fillStyle = "#DD1111";
+									ctx.fillStyle = "#" + life2hex(grid[x][y].alive) + "0000";
 									break;
 								case "green":
-									ctx.fillStyle = "#11DD11";
+									ctx.fillStyle = "#00" + life2hex(grid[x][y].alive) + "00"; 
+									break;
+								case "wall":
+									var hex = life2hex(grid[x][y].alive);
+									ctx.fillStyle = "#" + hex + hex + hex;
 									break;
 								default:
-									ctx.fillStyle = "#1111DD";
+									ctx.fillStyle = "#0000" + life2hex(grid[x][y].alive);
 							}
 							ctx.fillRect((x - origin.x) * cellSize, (y - origin.y) * cellSize, cellSize, cellSize);
+							ctx.rect((x - origin.x) * cellSize, (y - origin.y) * cellSize, cellSize, cellSize);
 						}
 					}
+				}
+				ctx.stroke();
+
+				ctx.fillStyle = "#FAE219";
+				for (var i = 0; i < particles.length; i++) {
+					ctx.fillRect(particles[i].x - (origin.x * cellSize), particles[i].y - (origin.y * cellSize), 2, 2);
 				}
 
 				if (typeof mouse.x === "number" && typeof mouse.y === "number") {
@@ -222,6 +272,9 @@
 							break;
 						case "green":
 							ctx.strokeStyle = "#00FF00";
+							break;
+						case "wall":
+							ctx.strokeStyle = "#FFFFFF";
 							break;
 						default:
 							ctx.strokeStyle = "#0000FF";
@@ -233,12 +286,44 @@
 			}, 20),
 
 			update: function() {
+				/* grid */
+				if (updateNumber % 5 === 0) {
+					this.updateGrid();
+				}
+
+				/* particles */
+				var nextParticles = [];
+				for (var i = 0; i < particles.length; i++) {
+					var gx = Math.floor(particles[i].x / cellSize);
+					var gy = Math.floor(particles[i].y / cellSize);
+					if (gx >= 0 && gx < gridWidth && gy >= 0 && gy < gridHeight) {
+						grid[gx][gy].alive = 0;
+					} else {
+						particles[i].alive = 0;
+						continue;
+					}
+					
+					particles[i].x += particles[i].vx;
+					particles[i].y += particles[i].vy;
+					particles[i].vx *= 0.95;
+					particles[i].vy *= 0.95;
+					particles[i].alive--;
+					if (particles[i].alive > 0) {
+						nextParticles.push(particles[i]);
+					}
+				}
+				particles = nextParticles;
+				this.draw();
+				updateNumber++;
+			},
+
+			updateGrid: function() {
 				for (var x = 0; x < gridWidth; x++) {
 					for (var y = 0; y < gridHeight; y++) {
 						var neighbors = 0;
 						var reds = 0;
 						var greens = 0;
-						if (x < gridWidth - 1 && grid[x + 1][y].alive) {
+						if (x < gridWidth - 1 && grid[x + 1][y].alive && grid[x + 1][y].color !== "wall") {
 							neighbors++;
 							switch (grid[x + 1][y].color) {
 								case "red":
@@ -249,7 +334,7 @@
 									break;
 							}
 						}
-						if (x < gridWidth - 1 && y > 0 && grid[x + 1][y - 1].alive) {
+						if (x < gridWidth - 1 && y > 0 && grid[x + 1][y - 1].alive && grid[x + 1][y - 1].color !== "wall") {
 							neighbors++;
 							switch (grid[x + 1][y - 1].color) {
 								case "red":
@@ -260,7 +345,7 @@
 									break;
 							}
 						}
-						if (y > 0 && grid[x][y - 1].alive) {
+						if (y > 0 && grid[x][y - 1].alive && grid[x][y - 1].color !== "wall") {
 							neighbors++;
 							switch (grid[x][y - 1].color) {
 								case "red":
@@ -271,7 +356,7 @@
 									break;
 							}
 						}
-						if (x > 0 && y > 0 && grid[x - 1][y - 1].alive) {
+						if (x > 0 && y > 0 && grid[x - 1][y - 1].alive && grid[x - 1][y - 1].color !== "wall") {
 							neighbors++;
 							switch (grid[x - 1][y - 1].color) {
 								case "red":
@@ -282,7 +367,7 @@
 									break;
 							}
 						}
-						if (x > 0 && grid[x - 1][y].alive) {
+						if (x > 0 && grid[x - 1][y].alive && grid[x - 1][y].color !== "wall") {
 							neighbors++;
 							switch (grid[x - 1][y].color) {
 								case "red":
@@ -293,7 +378,7 @@
 									break;
 							}
 						}
-						if (x > 0 && y < gridHeight - 1 && grid[x - 1][y + 1].alive) {
+						if (x > 0 && y < gridHeight - 1 && grid[x - 1][y + 1].alive && grid[x - 1][y + 1].color !== "wall") {
 							neighbors++;
 							switch (grid[x - 1][y + 1].color) {
 								case "red":
@@ -304,7 +389,7 @@
 									break;
 							}
 						}
-						if (y < gridHeight - 1 && grid[x][y + 1].alive) {
+						if (y < gridHeight - 1 && grid[x][y + 1].alive && grid[x][y + 1].color !== "wall") {
 							neighbors++;
 							switch (grid[x][y + 1].color) {
 								case "red":
@@ -315,7 +400,7 @@
 									break;
 							}
 						}
-						if (x < gridWidth - 1 && y < gridHeight - 1 && grid[x + 1][y + 1].alive) {
+						if (x < gridWidth - 1 && y < gridHeight - 1 && grid[x + 1][y + 1].alive && grid[x + 1][y + 1].color !== "wall") {
 							neighbors++;
 							switch (grid[x + 1][y + 1].color) {
 								case "red":
@@ -327,32 +412,34 @@
 							}
 						}
 
-						if (grid[x][y].alive && neighbors >= 2 && neighbors <= 3) {	// survival
-							grid[x][y].nextAlive = true;
-						} else if (!grid[x][y].alive && neighbors === 3) {	// birth
-							grid[x][y].nextAlive = true;
-							if (reds > greens) {
-								grid[x][y].color = "red";
-							} else if (greens > reds) {
-								grid[x][y].color = "green";
-							} else {	// does not happen w/ current rules
-								grid[x][y].color = "blue";
-							}
+						if (grid[x][y].color === "wall" && grid[x][y].alive) {
+							grid[x][y].nextAlive = grid[x][y].alive - neighbors;
 						} else {
-							grid[x][y].nextAlive = false;
+							if (grid[x][y].alive && neighbors >= 2 && neighbors <= 3) {	// survival
+								grid[x][y].nextAlive = grid[x][y].alive + Math.random() * 5;
+							} else if (!grid[x][y].alive && neighbors === 3) {	// birth
+								grid[x][y].nextAlive = Math.random() * 5;
+								if (reds > greens) {
+									grid[x][y].color = "red";
+								} else if (greens > reds) {
+									grid[x][y].color = "green";
+								} else {
+									grid[x][y].color = "blue";
+								}
+							} else {
+								grid[x][y].nextAlive = grid[x][y].alive - Math.random() * 15;
+							}
 						}
 					}
 				}
 				for (var x = 0; x < gridWidth; x++) {
 					for (var y = 0; y < gridHeight; y++) {
-						if (grid[x][y].nextAlive) {
-							grid[x][y].alive = true;
-						} else {
-							grid[x][y].alive = false;
-						}
+						var next = grid[x][y].nextAlive;
+						next = next < 0 ? 0 : next;
+						next = next > 100 ? 100 : next;
+						grid[x][y].alive = next;
 					}
 				}
-				this.draw();
 			},
 
 			run: function() {
@@ -364,7 +451,7 @@
 
 				ticker = setInterval(function() {
 					that.update();
-				}, 100);
+				}, 20);
 			},
 
 			stop: function() {
@@ -392,8 +479,17 @@
 				case "blue":
 				case "red":
 				case "green":
+				case "wall":
 					mouse.color = color;
 					this.draw();
+				}
+			},
+
+			setTool: function(tool) {
+				switch (tool) {
+					case "draw":
+					case "bomb":
+						mouse.tool = tool;
 				}
 			}
 		};
@@ -430,9 +526,12 @@
 				ctrl.update();
 			}).on("change", "input[name=color]", function(event) {
 				ctrl.setColor($(this).val());
-			});
+			}).on("change", "input[name=tool]", function(event) {
+				ctrl.setTool($(this).val());
+			});;
 
 			widget.find("input[name=color][value=blue]").prop("checked", true);
+			widget.find("input[name=tool][value=draw]").prop("checked", true);
 		});
 	});
 }());
