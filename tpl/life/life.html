@@ -56,12 +56,6 @@
 								<label>Green</label>
 							</div>
 						</div>
-						<div class="field">
-							<div class="ui radio checkbox">
-								<input name="color" type="radio" value="wall"/>
-								<label>Wall</label>
-							</div>
-						</div>
 					</div>
 					<div class="inline fields">
 						<label for="tool">Tool</label>
@@ -73,14 +67,36 @@
 						</div>
 						<div class="field">
 							<div class="ui radio checkbox">
+								<input name="tool" checked="" type="radio" value="harvest"/>
+								<label>Harvest</label>
+							</div>
+						</div>
+						<div class="field">
+							<div class="ui radio checkbox">
 								<input name="tool" type="radio" value="bomb"/>
 								<label>Bomb</label>
+							</div>
+						</div>
+						<div class="field">
+							<div class="ui radio checkbox">
+								<input name="tool" type="radio" value="wall"/>
+								<label>Wall</label>
 							</div>
 						</div>
 					</div>
 				</div>
 			</div>
 		</div>
-		<div class="four wide left aligned column"></div>
+		<div class="four wide right aligned column">
+			<table class="ui celled table">
+				<thead></thead>
+				<tbody>
+					<tr>
+						<td class="center aligned">Resource</td>
+						<td class="center aligned js-widget-field life-widget resources"></td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
 	</div>
 </div>
