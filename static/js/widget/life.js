@@ -29,7 +29,7 @@
 		canvas[0].height = height;
 
 		var grid = [];
-		var particles = [];
+		var particles = {};
 		var markers = [];
 		var cellSize = 10;
 		var gridWidth = 150;
@@ -54,6 +54,7 @@
 					grid[x][y].special = "resource";
 				} else if (rand < 2.0) {
 					grid[x][y].alive = 100;
+					grid[x][y].color = "green";
 				}
 			}
 		}
@@ -187,8 +188,10 @@
 									for (var j = 0; j < 100; j++) {
 										var dir = Math.random() * 2 * Math.PI;
 										var velocity = Math.random() < 0.8 ? 25 : 10;
-										particles.push({
-											type: "blast",
+										if (!particles.blast) {
+											particles.blast = [];
+										}
+										particles.blast.push({
 											x: ccx,
 											y: ccy,
 											vx: Math.cos(dir) * velocity,
@@ -201,7 +204,7 @@
 						}
 						break;
 					case "napalm":
-						if (!ctrl.getResource(80)) {
+						if (!ctrl.getResource(150)) {
 							break;
 						}
 						var marker = {
@@ -222,8 +225,10 @@
 								for (var i = 0; i < 30; i++) {
 									var dir = Math.random() * 2 * Math.PI;
 									var velocity = Math.random() * 10;
-									particles.push({
-										type: "napalm",
+									if (!particles.napalm) {
+										particles.napalm = [];
+									}
+									particles.napalm.push({
 										x: cx,
 										y: cy,
 										vx: Math.cos(dir) * velocity,
@@ -448,6 +453,7 @@
 
 		var ctrl = {
 			draw: _.throttle(function() {
+				var startTime = new Date().getTime();
 				ctx.clearRect(0, 0, width, height);
 				var tl = {
 					x: s2gx(0),
@@ -503,32 +509,47 @@
 				}
 				ctx.stroke();
 
-				for (var i = 0; i < particles.length; i++) {
-					switch (particles[i].type) {
-						case "fire":
-							ctx.beginPath();
-							if (particles[i].iter < 5) {
-								ctx.fillStyle = "rgba(240, 240, 240, 0.8)";
-							} else if (particles[i].iter < 15) {
-								ctx.fillStyle = "rgba(243, 239, 19, 0.6)";
-							} else {
-								ctx.fillStyle = "rgba(230, 20, 2, 0.5)";
-							}
-							ctx.arc(
-								particles[i].x - (origin.x * cellSize),
-								particles[i].y - (origin.y * cellSize),
-								particles[i].iter,
-								0,
-								2 * Math.PI
-							);
-							ctx.fill();
+				for (var key in particles) {
+					if (key === "napalm") {
+						continue;
+					}
+					ctx.beginPath();
+					for (var i = 0; i < particles[key].length; i++) {
+						var particle = particles[key][i];
+						var x = particle.x - (origin.x * cellSize);
+						var y = particle.y - (origin.y * cellSize);
+						switch (key) {
+							case "fire-white":
+							case "fire-yellow":
+							case "fire-red":
+								ctx.moveTo(x, y);
+								ctx.arc(
+									x,
+									y,
+									particle.iter,
+									0,
+									2 * Math.PI
+								);
+								break;
+							default:
+								ctx.moveTo(x, y);
+								ctx.rect(x, y, 2, 2);
+						}
+					}
+					switch (key) {
+						case "fire-white":
+							ctx.fillStyle = "rgba(240, 240, 240, 0.8)";
 							break;
-						case "napalm":
+						case "fire-yellow":
+							ctx.fillStyle = "rgba(243, 239, 19, 0.6)";
+							break;
+						case "fire-red":
+							ctx.fillStyle = "rgba(230, 20, 2, 0.5)";
 							break;
 						default:
 							ctx.fillStyle = "#FAE219";
-							ctx.fillRect(particles[i].x - (origin.x * cellSize), particles[i].y - (origin.y * cellSize), 2, 2);
 					}
+					ctx.fill();
 				}
 
 				for (i = 0; i < markers.length; i++) {
@@ -607,6 +628,10 @@
 					ctx.rect((mouse.x - origin.x) * cellSize, (mouse.y - origin.y) * cellSize, cellSize, cellSize);
 					ctx.stroke();
 				}
+
+				var elapsed = String(new Date().getTime() - startTime);
+				ctx.fillStyle = "#FFFFFF";
+				ctx.fillText(elapsed, 10, 10);
 			}, 20),
 
 			update: function() {
@@ -616,36 +641,63 @@
 				}
 
 				/* particles */
-				var nextParticles = [];
-				for (var i = 0; i < particles.length; i++) {
-					var gx = Math.floor(particles[i].x / cellSize);
-					var gy = Math.floor(particles[i].y / cellSize);
-					if (gx >= 0 && gx < gridWidth && gy >= 0 && gy < gridHeight) {
-						grid[gx][gy].alive = 0;
-					} else {
-						particles[i].alive = 0;
-						continue;
-					}
-					
-					particles[i].x += particles[i].vx;
-					particles[i].y += particles[i].vy;
-					particles[i].vx *= 0.95;
-					particles[i].vy *= 0.95;
-					particles[i].alive--;
-					particles[i].iter = typeof particles[i].iter === "number" && particles[i].iter > 0 ? particles[i].iter + 1 : 1;
-					if (particles[i].alive > 0) {
-						nextParticles.push(particles[i]);
-						if (particles[i].type === "napalm" && Math.random() < 0.3) {
-							var dir = Math.random() * 2 * Math.PI;
-							var velocity = Math.random() * 10;
-							nextParticles.push({
-								type: "fire",
-								x: particles[i].x,
-								y: particles[i].y,
-								vx: particles[i].vx + Math.cos(dir) * velocity,
-								vy: particles[i].vy + Math.sin(dir) * velocity,
-								alive: 30
-							});
+				var nextParticles = {};
+				for (var key in particles) {
+					for (var i = 0; i < particles[key].length; i++) {
+						var particle = particles[key][i];
+						var gx = Math.floor(particle.x / cellSize);
+						var gy = Math.floor(particle.y / cellSize);
+						if (gx >= 0 && gx < gridWidth && gy >= 0 && gy < gridHeight) {
+							grid[gx][gy].alive = 0;
+						} else {
+							particle.alive = 0;
+							continue;
+						}
+						
+						particle.x += particle.vx;
+						particle.y += particle.vy;
+						particle.vx *= 0.95;
+						particle.vy *= 0.95;
+						particle.alive--;
+						particle.iter = typeof particle.iter === "number" && particle.iter > 0 ? particle.iter + 1 : 1;
+						if (particle.alive > 0) {
+							switch (key) {
+								case "fire-white":
+									var nkey = particle.iter > 4 ? "fire-yellow": "fire-white";
+									if (!nextParticles[nkey]) {
+										nextParticles[nkey] = [];
+									}
+									nextParticles[nkey].push(particle);
+									break;
+								case "fire-yellow":
+									var nkey = particle.iter > 14 ? "fire-red": "fire-yellow";
+									if (!nextParticles[nkey]) {
+										nextParticles[nkey] = [];
+									}
+									nextParticles[nkey].push(particle);
+									break;
+								case "napalm":
+									if (Math.random() < 0.3) {
+										var dir = Math.random() * 2 * Math.PI;
+										var velocity = Math.random() * 10;
+										if (!nextParticles["fire-white"]) {
+											nextParticles["fire-white"] = [];
+										}
+										nextParticles["fire-white"].push({
+											x: particle.x,
+											y: particle.y,
+											vx: particle.vx + Math.cos(dir) * velocity,
+											vy: particle.vy + Math.sin(dir) * velocity,
+											alive: 30
+										});
+									}
+									// fallthrough
+								default:
+									if (!nextParticles[key]) {
+										nextParticles[key] = [];
+									}
+									nextParticles[key].push(particle);
+							}
 						}
 					}
 				}
