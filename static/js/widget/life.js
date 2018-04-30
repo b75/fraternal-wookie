@@ -48,11 +48,11 @@
 					color: "blue"
 				};
 				var rand = Math.random() * 100;
-				if (rand < 0.5) {
+				if (rand < 0.05) {
 					grid[x][y].alive = 100;
 					grid[x][y].color = "wall";
 					grid[x][y].special = "resource";
-				} else if (rand < 1.5) {
+				} else if (rand < 2.0) {
 					grid[x][y].alive = 100;
 				}
 			}
@@ -100,6 +100,49 @@
 					grid[mouse.x][mouse.y].alive = mouse.left ? 100 : 0;
 					grid[mouse.x][mouse.y].color = mouse.color;
 				}
+			} else if (running && mouse.left) {
+				switch (mouse.tool) {
+					case "wall":
+						if (mouse.x < 0 || mouse.x >= gridWidth || mouse.y < 0 || mouse.y >= gridHeight) {
+							break
+						}
+						var redundant = false;
+						for (var i = 0; i < markers.length; i++) {
+							if (markers[i].type !== "wall") {
+								continue;
+							}
+							if (markers[i].x === mouse.x && markers[i].y === mouse.y) {
+								redundant = true;
+								break;
+							}
+						}
+						if (redundant) {
+							break;
+						}
+						if (!ctrl.getResource(1)) {
+							break;
+						}
+						var marker = {
+							type: "wall",
+							x: mouse.x,
+							y: mouse.y,
+							alive: true
+						};
+						markers.push(marker);
+						(function() {
+							var x = mouse.x;
+							var y = mouse.y;
+							setTimeout(function() {
+								marker.alive = false;
+								if (x < 0 || x >= gridWidth || y < 0 || y >= gridHeight) {
+									return;
+								}
+								grid[x][y].alive = 100;
+								grid[x][y].color = "wall";
+							}, 1000);
+						})();
+						break;
+				}
 			}
 			ctrl.draw();
 		});
@@ -119,7 +162,7 @@
 				ctrl.draw();
 			} else if (running && mouse.left) {
 				switch (mouse.tool) {
-					case "bomb":
+					case "cluster":
 						if (!ctrl.getResource(100)) {
 							break;
 						}
@@ -145,6 +188,7 @@
 										var dir = Math.random() * 2 * Math.PI;
 										var velocity = Math.random() < 0.8 ? 25 : 10;
 										particles.push({
+											type: "blast",
 											x: ccx,
 											y: ccy,
 											vx: Math.cos(dir) * velocity,
@@ -156,7 +200,57 @@
 							})();
 						}
 						break;
+					case "napalm":
+						if (!ctrl.getResource(80)) {
+							break;
+						}
+						var marker = {
+							type: "napalm",
+							x: mouse.x,
+							y: mouse.y,
+							alive: true,
+							iter: 40
+						};
+						markers.push(marker);
+						(function() {
+							var cdir = Math.random() * 2 * Math.PI;
+							var cr = Math.random() * 90;
+							var cx = mouse.x * cellSize + Math.cos(cdir) * cr;
+							var cy = mouse.y * cellSize + Math.sin(cdir) * cr;
+							setTimeout(function() {
+								marker.alive = false;
+								for (var i = 0; i < 30; i++) {
+									var dir = Math.random() * 2 * Math.PI;
+									var velocity = Math.random() * 10;
+									particles.push({
+										type: "napalm",
+										x: cx,
+										y: cy,
+										vx: Math.cos(dir) * velocity,
+										vy: Math.sin(dir) * velocity,
+										alive: 200 + 200 * Math.random()
+									});
+								}
+							}, Math.floor(5000 + Math.random() * 1000));
+						})();
+						break;
 					case "wall":
+						if (mouse.x < 0 || mouse.x >= gridWidth || mouse.y < 0 || mouse.y >= gridHeight) {
+							break
+						}
+						var redundant = false;
+						for (var i = 0; i < markers.length; i++) {
+							if (markers[i].type !== "wall") {
+								continue;
+							}
+							if (markers[i].x === mouse.x && markers[i].y === mouse.y) {
+								redundant = true;
+								break;
+							}
+						}
+						if (redundant) {
+							break;
+						}
 						if (!ctrl.getResource(1)) {
 							break;
 						}
@@ -220,7 +314,7 @@
 									return;
 								}
 								if (grid[x][y].alive && grid[x][y].color === "wall" && grid[x][y].special === "resource") {
-									ctrl.addResource(grid[x][y].alive);
+									ctrl.addResource(grid[x][y].alive * 5);
 									grid[x][y].alive = 0;
 									grid[x][y].special = null;
 								}
@@ -304,6 +398,49 @@
 						grid[mouse.x][mouse.y].alive = mouse.left ? 100 : 0;
 						grid[mouse.x][mouse.y].color = mouse.color;
 					}
+				} else if (running && mouse.left) {
+					switch (mouse.tool) {
+						case "wall":
+							if (mouse.x < 0 || mouse.x >= gridWidth || mouse.y < 0 || mouse.y >= gridHeight) {
+								break
+							}
+							var redundant = false;
+							for (var i = 0; i < markers.length; i++) {
+								if (markers[i].type !== "wall") {
+									continue;
+								}
+								if (markers[i].x === mouse.x && markers[i].y === mouse.y) {
+									redundant = true;
+									break;
+								}
+							}
+							if (redundant) {
+								break;
+							}
+							if (!ctrl.getResource(1)) {
+								break;
+							}
+							var marker = {
+								type: "wall",
+								x: mouse.x,
+								y: mouse.y,
+								alive: true
+							};
+							markers.push(marker);
+							(function() {
+								var x = mouse.x;
+								var y = mouse.y;
+								setTimeout(function() {
+									marker.alive = false;
+									if (x < 0 || x >= gridWidth || y < 0 || y >= gridHeight) {
+										return;
+									}
+									grid[x][y].alive = 100;
+									grid[x][y].color = "wall";
+								}, 1000);
+							})();
+							break;
+					}	
 				}
 				ctrl.draw();
 			}
@@ -366,9 +503,32 @@
 				}
 				ctx.stroke();
 
-				ctx.fillStyle = "#FAE219";
 				for (var i = 0; i < particles.length; i++) {
-					ctx.fillRect(particles[i].x - (origin.x * cellSize), particles[i].y - (origin.y * cellSize), 2, 2);
+					switch (particles[i].type) {
+						case "fire":
+							ctx.beginPath();
+							if (particles[i].iter < 5) {
+								ctx.fillStyle = "rgba(240, 240, 240, 0.8)";
+							} else if (particles[i].iter < 15) {
+								ctx.fillStyle = "rgba(243, 239, 19, 0.6)";
+							} else {
+								ctx.fillStyle = "rgba(230, 20, 2, 0.5)";
+							}
+							ctx.arc(
+								particles[i].x - (origin.x * cellSize),
+								particles[i].y - (origin.y * cellSize),
+								particles[i].iter,
+								0,
+								2 * Math.PI
+							);
+							ctx.fill();
+							break;
+						case "napalm":
+							break;
+						default:
+							ctx.fillStyle = "#FAE219";
+							ctx.fillRect(particles[i].x - (origin.x * cellSize), particles[i].y - (origin.y * cellSize), 2, 2);
+					}
 				}
 
 				for (i = 0; i < markers.length; i++) {
@@ -376,6 +536,20 @@
 						case "cluster_bomb":
 							ctx.beginPath();
 							ctx.strokeStyle = "#DAD209";
+							ctx.ellipse(
+								(markers[i].x - origin.x) * cellSize + 0.5 * cellSize,
+								(markers[i].y - origin.y) * cellSize + 0.5 * cellSize,
+								(10 * markers[i].iter) / 20,
+								(10 * markers[i].iter) / 20,
+								0,
+								0,
+								2 * Math.PI
+							);
+							ctx.stroke();
+							break;
+						case "napalm":
+							ctx.beginPath();
+							ctx.strokeStyle = "#FC6823";
 							ctx.ellipse(
 								(markers[i].x - origin.x) * cellSize + 0.5 * cellSize,
 								(markers[i].y - origin.y) * cellSize + 0.5 * cellSize,
@@ -458,8 +632,21 @@
 					particles[i].vx *= 0.95;
 					particles[i].vy *= 0.95;
 					particles[i].alive--;
+					particles[i].iter = typeof particles[i].iter === "number" && particles[i].iter > 0 ? particles[i].iter + 1 : 1;
 					if (particles[i].alive > 0) {
 						nextParticles.push(particles[i]);
+						if (particles[i].type === "napalm" && Math.random() < 0.3) {
+							var dir = Math.random() * 2 * Math.PI;
+							var velocity = Math.random() * 10;
+							nextParticles.push({
+								type: "fire",
+								x: particles[i].x,
+								y: particles[i].y,
+								vx: particles[i].vx + Math.cos(dir) * velocity,
+								vy: particles[i].vy + Math.sin(dir) * velocity,
+								alive: 30
+							});
+						}
 					}
 				}
 				particles = nextParticles;
@@ -587,7 +774,7 @@
 						} else {
 							if (grid[x][y].alive && neighbors >= 2 && neighbors <= 3) {	// survival
 								grid[x][y].nextAlive = grid[x][y].alive + Math.random() * 5;
-							} else if (!grid[x][y].alive && neighbors === 3) {	// birth
+							} else if (!grid[x][y].alive && neighbors === 3 && Math.random() < 0.6) {	// birth
 								grid[x][y].nextAlive = Math.random() * 5;
 								if (reds > greens) {
 									grid[x][y].color = "red";
@@ -660,8 +847,9 @@
 			setTool: function(tool) {
 				switch (tool) {
 					case "draw":
-					case "bomb":
+					case "cluster":
 					case "wall":
+					case "napalm":
 					case "harvest":
 						mouse.tool = tool;
 				}
