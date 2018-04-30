@@ -587,7 +587,7 @@
 							ctx.fillStyle = "rgba(230, 20, 2, 0.5)";
 							break;
 						case "inhibitor":
-							ctx.fillStyle = "rgba(45, 229, 108, 0.3)";
+							ctx.fillStyle = "rgba(240, 14, 227, 0.3)";
 							break;
 						default:
 							ctx.fillStyle = "#FAE219";
