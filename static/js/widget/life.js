@@ -326,6 +326,42 @@
 							}, 10000);
 						})();
 						break;
+					case "inhibitor":
+						if (!ctrl.getResource(50)) {
+							break;
+						}
+						var marker = {
+							type: "inhibitor",
+							x: mouse.x,
+							y: mouse.y,
+							alive: true,
+							iter: 40
+						};
+						markers.push(marker);
+						(function() {
+							var cdir = Math.random() * 2 * Math.PI;
+							var cr = Math.random() * 30;
+							var cx = mouse.x * cellSize + Math.cos(cdir) * cr;
+							var cy = mouse.y * cellSize + Math.sin(cdir) * cr;
+							setTimeout(function() {
+								marker.alive = false;
+								for (var i = 0; i < 40; i++) {
+									var dir = Math.random() * 2 * Math.PI;
+									var velocity = Math.random() * 8;
+									if (!particles.inhibitor) {
+										particles.inhibitor = [];
+									}
+									particles.inhibitor.push({
+										x: cx,
+										y: cy,
+										vx: Math.cos(dir) * velocity,
+										vy: Math.sin(dir) * velocity,
+										alive: 80 + 50 * Math.random()
+									});
+								}
+							}, Math.floor(3000 + Math.random() * 500));
+						})();
+						break;
 				}
 			}
 		});
@@ -504,6 +540,9 @@
 							}
 							ctx.fillRect((x - origin.x) * cellSize, (y - origin.y) * cellSize, cellSize, cellSize);
 							ctx.rect((x - origin.x) * cellSize, (y - origin.y) * cellSize, cellSize, cellSize);
+						} else if (grid[x][y].inhibitor) {
+							ctx.fillStyle = "#" + life2hex(grid[x][y].inhibitor) + "0EE3";
+							ctx.fillRect((x - origin.x) * cellSize, (y - origin.y) * cellSize, cellSize, cellSize);
 						}
 					}
 				}
@@ -522,6 +561,7 @@
 							case "fire-white":
 							case "fire-yellow":
 							case "fire-red":
+							case "inhibitor":
 								ctx.moveTo(x, y);
 								ctx.arc(
 									x,
@@ -545,6 +585,9 @@
 							break;
 						case "fire-red":
 							ctx.fillStyle = "rgba(230, 20, 2, 0.5)";
+							break;
+						case "inhibitor":
+							ctx.fillStyle = "rgba(45, 229, 108, 0.3)";
 							break;
 						default:
 							ctx.fillStyle = "#FAE219";
@@ -571,6 +614,20 @@
 						case "napalm":
 							ctx.beginPath();
 							ctx.strokeStyle = "#FC6823";
+							ctx.ellipse(
+								(markers[i].x - origin.x) * cellSize + 0.5 * cellSize,
+								(markers[i].y - origin.y) * cellSize + 0.5 * cellSize,
+								(10 * markers[i].iter) / 20,
+								(10 * markers[i].iter) / 20,
+								0,
+								0,
+								2 * Math.PI
+							);
+							ctx.stroke();
+							break;
+						case "inhibitor":
+							ctx.beginPath();
+							ctx.strokeStyle = "#27EB6A";
 							ctx.ellipse(
 								(markers[i].x - origin.x) * cellSize + 0.5 * cellSize,
 								(markers[i].y - origin.y) * cellSize + 0.5 * cellSize,
@@ -648,7 +705,11 @@
 						var gx = Math.floor(particle.x / cellSize);
 						var gy = Math.floor(particle.y / cellSize);
 						if (gx >= 0 && gx < gridWidth && gy >= 0 && gy < gridHeight) {
-							grid[gx][gy].alive = 0;
+							if (key === "inhibitor") {
+								grid[gx][gy].inhibitor = typeof grid[gx][gy].inhibitor === "number" && grid[gx][gy].inhibitor > 0 ? grid[gx][gy].inhibitor + 3 : 3;
+							} else {
+								grid[gx][gy].alive = 0;
+							}
 						} else {
 							particle.alive = 0;
 							continue;
@@ -824,9 +885,10 @@
 						if (grid[x][y].color === "wall" && grid[x][y].alive) {
 							grid[x][y].nextAlive = grid[x][y].alive - (neighborAlives / 100);
 						} else {
+							var inhibitor = grid[x][y].inhibitor ? grid[x][y].inhibitor : 0;
 							if (grid[x][y].alive && neighbors >= 2 && neighbors <= 3) {	// survival
 								grid[x][y].nextAlive = grid[x][y].alive + Math.random() * 5;
-							} else if (!grid[x][y].alive && neighbors === 3 && Math.random() < 0.6) {	// birth
+							} else if (!grid[x][y].alive && neighbors === 3 && Math.random() < (0.6 - inhibitor * 0.01)) {	// birth
 								grid[x][y].nextAlive = Math.random() * 5;
 								if (reds > greens) {
 									grid[x][y].color = "red";
@@ -849,6 +911,12 @@
 						grid[x][y].alive = next;
 						if (!grid[x][y].alive) {
 							grid[x][y].special = null;
+						}
+						if (grid[x][y].inhibitor) {
+							grid[x][y].inhibitor *= 0.98;
+							if (grid[x][y].inhibitor < 1) {
+								grid[x][y].inhibitor = 0;
+							}
 						}
 					}
 				}
@@ -903,6 +971,7 @@
 					case "wall":
 					case "napalm":
 					case "harvest":
+					case "inhibitor":
 						mouse.tool = tool;
 				}
 			},
