@@ -144,6 +144,42 @@
 							}, 1000);
 						})();
 						break;
+					case "ion":
+						if (mouse.x < 0 || mouse.x >= gridWidth || mouse.y < 0 || mouse.y >= gridHeight) {
+							break
+						}
+						if (!ctrl.getResource(1)) {
+							break;
+						}
+						var marker = {
+							type: "ion",
+							x: mouse.x,
+							y: mouse.y,
+							alive: true
+						};
+						markers.push(marker);
+						(function() {
+							var x = mouse.x * cellSize + 0.5 * cellSize;
+							var y = mouse.y * cellSize + 0.5 * cellSize;
+							setTimeout(function() {
+								marker.alive = false;
+								for (var i = 0; i < 10; i++) {
+									var dir = Math.random() * 2 * Math.PI;
+									var velocity = Math.random() < 0.8 ? 25 : 10;
+									if (!particles.ion) {
+										particles.ion = [];
+									}
+									particles.ion.push({
+										x: x,
+										y: y,
+										vx: Math.cos(dir) * velocity,
+										vy: Math.sin(dir) * velocity,
+										alive: 5
+									});
+								}
+							}, 1000);
+						})();
+						break;
 				}
 			}
 			ctrl.draw();
@@ -363,6 +399,38 @@
 							}, Math.floor(3000 + Math.random() * 500));
 						})();
 						break;
+					case "ion":
+						if (!ctrl.getResource(1)) {
+							break;
+						}
+						var marker = {
+							type: "ion",
+							x: mouse.x,
+							y: mouse.y,
+							alive: true,
+						};
+						markers.push(marker);
+						(function() {
+							var x = mouse.x * cellSize + 0.5 * cellSize;
+							var y = mouse.y * cellSize + 0.5 * cellSize;
+							setTimeout(function() {
+								marker.alive = false;
+								for (var i = 0; i < 10; i++) {
+									var dir = Math.random() * 2 * Math.PI;
+									var velocity = Math.random() < 0.8 ? 25 : 10;
+									if (!particles.ion) {
+										particles.ion = [];
+									}
+									particles.ion.push({
+										x: x,
+										y: y,
+										vx: Math.cos(dir) * velocity,
+										vy: Math.sin(dir) * velocity,
+										alive: 5
+									});
+								}
+							}, 1000);
+						})();
 				}
 			}
 		});
@@ -482,6 +550,42 @@
 								}, 1000);
 							})();
 							break;
+						case "ion":
+							if (mouse.x < 0 || mouse.x >= gridWidth || mouse.y < 0 || mouse.y >= gridHeight) {
+								break
+							}
+							if (!ctrl.getResource(1)) {
+								break;
+							}
+							var marker = {
+								type: "ion",
+								x: mouse.x,
+								y: mouse.y,
+								alive: true
+							};
+							markers.push(marker);
+							(function() {
+								var x = mouse.x * cellSize + 0.5 * cellSize;
+								var y = mouse.y * cellSize + 0.5 * cellSize;
+								setTimeout(function() {
+									marker.alive = false;
+									for (var i = 0; i < 10; i++) {
+										var dir = Math.random() * 2 * Math.PI;
+										var velocity = Math.random() < 0.8 ? 25 : 10;
+										if (!particles.ion) {
+											particles.ion = [];
+										}
+										particles.ion.push({
+											x: x,
+											y: y,
+											vx: Math.cos(dir) * velocity,
+											vy: Math.sin(dir) * velocity,
+											alive: 5
+										});
+									}
+								}, 1000);
+							})();
+							break;
 					}	
 				}
 				ctrl.draw();
@@ -590,6 +694,9 @@
 						case "inhibitor":
 							ctx.fillStyle = "rgba(240, 14, 227, 0.3)";
 							break;
+						case "ion":
+							ctx.fillStyle = "#1240FF";
+							break;
 						default:
 							ctx.fillStyle = "#FAE219";
 					}
@@ -643,6 +750,20 @@
 						case "wall":
 							ctx.beginPath();
 							ctx.strokeStyle = "#FFFFFF";
+							ctx.ellipse(
+								(markers[i].x - origin.x) * cellSize + 0.5 * cellSize,
+								(markers[i].y - origin.y) * cellSize + 0.5 * cellSize,
+								(5 * markers[i].iter) / 20,
+								(5 * markers[i].iter) / 20,
+								0,
+								0,
+								2 * Math.PI
+							);
+							ctx.stroke();
+							break;
+						case "ion":
+							ctx.beginPath();
+							ctx.strokeStyle = "#1155FF";
 							ctx.ellipse(
 								(markers[i].x - origin.x) * cellSize + 0.5 * cellSize,
 								(markers[i].y - origin.y) * cellSize + 0.5 * cellSize,
@@ -708,6 +829,8 @@
 						if (gx >= 0 && gx < gridWidth && gy >= 0 && gy < gridHeight) {
 							if (key === "inhibitor") {
 								grid[gx][gy].inhibitor += 3;
+							} else if (key === "ion") {
+								grid[gx][gy].alive = grid[gx][gy].color === "wall" ? grid[gx][gy].alive : 0;
 							} else {
 								grid[gx][gy].alive = 0;
 							}
@@ -919,6 +1042,7 @@
 					case "napalm":
 					case "harvest":
 					case "inhibitor":
+					case "ion":
 						mouse.tool = tool;
 				}
 			},
