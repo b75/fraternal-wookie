@@ -45,6 +45,7 @@
 			for (var y = 0; y < gridHeight; y++) {
 				grid[x][y] = {
 					alive: 0,
+					inhibitor: 0,
 					color: "blue"
 				};
 				var rand = Math.random() * 100;
@@ -706,7 +707,7 @@
 						var gy = Math.floor(particle.y / cellSize);
 						if (gx >= 0 && gx < gridWidth && gy >= 0 && gy < gridHeight) {
 							if (key === "inhibitor") {
-								grid[gx][gy].inhibitor = typeof grid[gx][gy].inhibitor === "number" && grid[gx][gy].inhibitor > 0 ? grid[gx][gy].inhibitor + 3 : 3;
+								grid[gx][gy].inhibitor += 3;
 							} else {
 								grid[gx][gy].alive = 0;
 							}
@@ -779,116 +780,58 @@
 			},
 
 			updateGrid: function() {
+				/* first pass */
 				for (var x = 0; x < gridWidth; x++) {
 					for (var y = 0; y < gridHeight; y++) {
 						var neighbors = 0;
 						var neighborAlives = 0;
 						var reds = 0;
 						var greens = 0;
-						if (x < gridWidth - 1 && grid[x + 1][y].alive && grid[x + 1][y].color !== "wall") {
-							neighbors++;
-							neighborAlives += grid[x + 1][y].alive;
-							switch (grid[x + 1][y].color) {
-								case "red":
-									reds++;
-									break;
-								case "green":
-									greens++;
-									break;
+						var inhibitorNeighbors = 0;
+						var inhibitorSum = 0;
+
+						var neighborHood = [
+							{x: x + 1, y: y},
+							{x: x + 1, y: y - 1},
+							{x: x, y: y - 1},
+							{x: x - 1, y: y - 1},
+							{x: x - 1, y: y},
+							{x: x - 1, y: y + 1},
+							{x: x, y: y + 1},
+							{x: x + 1, y: y + 1}
+						];
+
+						for (var n = 0; n < neighborHood.length; n++) {
+							var neighbor = neighborHood[n];
+							if (neighbor.x < 0 || neighbor.x >= gridWidth || neighbor.y < 0 || neighbor.y >= gridHeight) {
+								continue;
 							}
+							if (grid[neighbor.x][neighbor.y].alive && grid[neighbor.x][neighbor.y].color !== "wall") {
+								neighbors++;
+								neighborAlives += grid[neighbor.x][neighbor.y].alive;
+								switch (grid[neighbor.x][neighbor.y].color) {
+									case "red":
+										reds++;
+										break;
+									case "green":
+										greens++;
+										break;
+								}
+							}
+							inhibitorNeighbors++;
+							inhibitorSum += grid[neighbor.x][neighbor.y].inhibitor;
 						}
-						if (x < gridWidth - 1 && y > 0 && grid[x + 1][y - 1].alive && grid[x + 1][y - 1].color !== "wall") {
-							neighbors++;
-							neighborAlives += grid[x + 1][y - 1].alive;
-							switch (grid[x + 1][y - 1].color) {
-								case "red":
-									reds++;
-									break;
-								case "green":
-									greens++;
-									break;
-							}
-						}
-						if (y > 0 && grid[x][y - 1].alive && grid[x][y - 1].color !== "wall") {
-							neighbors++;
-							neighborAlives += grid[x][y - 1].alive;
-							switch (grid[x][y - 1].color) {
-								case "red":
-									reds++;
-									break;
-								case "green":
-									greens++;
-									break;
-							}
-						}
-						if (x > 0 && y > 0 && grid[x - 1][y - 1].alive && grid[x - 1][y - 1].color !== "wall") {
-							neighbors++;
-							neighborAlives += grid[x - 1][y - 1].alive;
-							switch (grid[x - 1][y - 1].color) {
-								case "red":
-									reds++;
-									break;
-								case "green":
-									greens++;
-									break;
-							}
-						}
-						if (x > 0 && grid[x - 1][y].alive && grid[x - 1][y].color !== "wall") {
-							neighbors++;
-							neighborAlives += grid[x - 1][y].alive;
-							switch (grid[x - 1][y].color) {
-								case "red":
-									reds++;
-									break;
-								case "green":
-									greens++;
-									break;
-							}
-						}
-						if (x > 0 && y < gridHeight - 1 && grid[x - 1][y + 1].alive && grid[x - 1][y + 1].color !== "wall") {
-							neighbors++;
-							neighborAlives += grid[x - 1][y + 1].alive;
-							switch (grid[x - 1][y + 1].color) {
-								case "red":
-									reds++;
-									break;
-								case "green":
-									greens++;
-									break;
-							}
-						}
-						if (y < gridHeight - 1 && grid[x][y + 1].alive && grid[x][y + 1].color !== "wall") {
-							neighbors++;
-							neighborAlives += grid[x][y + 1].alive;
-							switch (grid[x][y + 1].color) {
-								case "red":
-									reds++;
-									break;
-								case "green":
-									greens++;
-									break;
-							}
-						}
-						if (x < gridWidth - 1 && y < gridHeight - 1 && grid[x + 1][y + 1].alive && grid[x + 1][y + 1].color !== "wall") {
-							neighbors++;
-							neighborAlives += grid[x + 1][y + 1].alive;
-							switch (grid[x + 1][y + 1].color) {
-								case "red":
-									reds++;
-									break;
-								case "green":
-									greens++;
-									break;
-							}
+						if (inhibitorNeighbors && inhibitorSum) {
+							var average = inhibitorSum / inhibitorNeighbors;
+							grid[x][y].nextInhibitor = grid[x][y].inhibitor + (average - grid[x][y].inhibitor) * 0.1;
 						}
 
 						if (grid[x][y].color === "wall" && grid[x][y].alive) {
 							grid[x][y].nextAlive = grid[x][y].alive - (neighborAlives / 100);
 						} else {
-							var inhibitor = grid[x][y].inhibitor ? grid[x][y].inhibitor : 0;
 							if (grid[x][y].alive && neighbors >= 2 && neighbors <= 3) {	// survival
 								grid[x][y].nextAlive = grid[x][y].alive + Math.random() * 5;
-							} else if (!grid[x][y].alive && neighbors === 3 && Math.random() < (0.6 - inhibitor * 0.01)) {	// birth
+							} else if (!grid[x][y].alive && neighbors === 3 && Math.random() < (0.6 - grid[x][y].inhibitor * 0.01)) {	// birth
 								grid[x][y].nextAlive = Math.random() * 5;
 								if (reds > greens) {
 									grid[x][y].color = "red";
@@ -903,20 +846,24 @@
 						}
 					}
 				}
+
+				/* second pass */
 				for (var x = 0; x < gridWidth; x++) {
 					for (var y = 0; y < gridHeight; y++) {
-						var next = grid[x][y].nextAlive;
-						next = next < 0 ? 0 : next;
-						next = next > 100 ? 100 : next;
-						grid[x][y].alive = next;
+						var nextAlive = grid[x][y].nextAlive;
+						nextAlive = nextAlive < 0 ? 0 : nextAlive;
+						nextAlive = nextAlive > 100 ? 100 : nextAlive;
+						grid[x][y].alive = nextAlive;
+
+						var nextInhibitor = grid[x][y].nextInhibitor;
+						nextInhibitor = nextInhibitor > 0 ? nextInhibitor : 0;
+						grid[x][y].inhibitor = nextInhibitor;
+
 						if (!grid[x][y].alive) {
 							grid[x][y].special = null;
 						}
-						if (grid[x][y].inhibitor) {
-							grid[x][y].inhibitor *= 0.98;
-							if (grid[x][y].inhibitor < 1) {
-								grid[x][y].inhibitor = 0;
-							}
+						if (grid[x][y].inhibitor < 1) {
+							grid[x][y].inhibitor = 0;
 						}
 					}
 				}
