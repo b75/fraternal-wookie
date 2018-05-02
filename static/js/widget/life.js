@@ -695,6 +695,9 @@
 							ctx.fillStyle = "rgba(240, 14, 227, 0.3)";
 							break;
 						case "ion":
+							ctx.fillStyle = "#FFFFFF";
+							break;
+						case "ion-blue":
 							ctx.fillStyle = "#1240FF";
 							break;
 						default:
@@ -829,7 +832,7 @@
 						if (gx >= 0 && gx < gridWidth && gy >= 0 && gy < gridHeight) {
 							if (key === "inhibitor") {
 								grid[gx][gy].inhibitor += 3;
-							} else if (key === "ion") {
+							} else if (key === "ion" || key === "ion-blue") {
 								grid[gx][gy].alive = grid[gx][gy].color === "wall" ? grid[gx][gy].alive : 0;
 							} else {
 								grid[gx][gy].alive = 0;
@@ -856,6 +859,13 @@
 									break;
 								case "fire-yellow":
 									var nkey = particle.iter > 14 ? "fire-red": "fire-yellow";
+									if (!nextParticles[nkey]) {
+										nextParticles[nkey] = [];
+									}
+									nextParticles[nkey].push(particle);
+									break;
+								case "ion":
+									var nkey = particle.iter > 2 ? "ion-blue" : "ion";
 									if (!nextParticles[nkey]) {
 										nextParticles[nkey] = [];
 									}
