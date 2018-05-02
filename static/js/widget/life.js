@@ -45,18 +45,8 @@
 			for (var y = 0; y < gridHeight; y++) {
 				grid[x][y] = {
 					alive: 0,
-					inhibitor: 0,
-					color: "blue"
+					inhibitor: 0
 				};
-				var rand = Math.random() * 100;
-				if (rand < 0.05) {
-					grid[x][y].alive = 100;
-					grid[x][y].color = "wall";
-					grid[x][y].special = "resource";
-				} else if (rand < 2.0) {
-					grid[x][y].alive = 100;
-					grid[x][y].color = "green";
-				}
 			}
 		}
 
@@ -274,6 +264,42 @@
 									});
 								}
 							}, Math.floor(5000 + Math.random() * 1000));
+						})();
+						break;
+					case "thermobaric":
+						if (!ctrl.getResource(2000)) {
+							break;
+						}
+						var marker = {
+							type: "thermobaric",
+							x: mouse.x,
+							y: mouse.y,
+							alive: true,
+							iter: 60
+						};
+						markers.push(marker);
+						(function() {
+							var cdir = Math.random() * 2 * Math.PI;
+							var cr = Math.random() * 100;
+							var cx = mouse.x * cellSize + Math.cos(cdir) * cr;
+							var cy = mouse.y * cellSize + Math.sin(cdir) * cr;
+							setTimeout(function() {
+								marker.alive = false;
+								for (var i = 0; i < 100; i++) {
+									var dir = Math.random() * 2 * Math.PI;
+									var velocity = Math.random() * 15;
+									if (!particles.thermobaric) {
+										particles.thermobaric = [];
+									}
+									particles.thermobaric.push({
+										x: cx,
+										y: cy,
+										vx: Math.cos(dir) * velocity,
+										vy: Math.sin(dir) * velocity,
+										alive: 100 + Math.random() * 20
+									});
+								}
+							}, Math.floor(20000 + Math.random() * 5000));
 						})();
 						break;
 					case "wall":
@@ -676,6 +702,16 @@
 									2 * Math.PI
 								);
 								break;
+							case "thermobaric":
+								ctx.moveTo(x, y);
+								ctx.arc(
+									x,
+									y,
+									particle.iter * 0.5,
+									0,
+									2 * Math.PI
+								);
+								break;
 							default:
 								ctx.moveTo(x, y);
 								ctx.rect(x, y, 2, 2);
@@ -699,6 +735,9 @@
 							break;
 						case "ion-blue":
 							ctx.fillStyle = "#1240FF";
+							break;
+						case "thermobaric":
+							ctx.fillStyle = "rgba(240, 230, 230, 0.8)";
 							break;
 						default:
 							ctx.fillStyle = "#FAE219";
@@ -730,6 +769,20 @@
 								(markers[i].y - origin.y) * cellSize + 0.5 * cellSize,
 								(10 * markers[i].iter) / 20,
 								(10 * markers[i].iter) / 20,
+								0,
+								0,
+								2 * Math.PI
+							);
+							ctx.stroke();
+							break;
+						case "thermobaric":
+							ctx.beginPath();
+							ctx.strokeStyle = "#E6E806";
+							ctx.ellipse(
+								(markers[i].x - origin.x) * cellSize + 0.5 * cellSize,
+								(markers[i].y - origin.y) * cellSize + 0.5 * cellSize,
+								(12 * markers[i].iter) / 20,
+								(12 * markers[i].iter) / 20,
 								0,
 								0,
 								2 * Math.PI
@@ -830,16 +883,20 @@
 						var gx = Math.floor(particle.x / cellSize);
 						var gy = Math.floor(particle.y / cellSize);
 						if (gx >= 0 && gx < gridWidth && gy >= 0 && gy < gridHeight) {
-							if (key === "inhibitor") {
-								grid[gx][gy].inhibitor += 3;
-							} else if (key === "ion" || key === "ion-blue") {
-								grid[gx][gy].alive = grid[gx][gy].color === "wall" ? grid[gx][gy].alive : 0;
-							} else {
-								grid[gx][gy].alive = 0;
+							switch (key) {
+								case "inhibitor":
+									grid[gx][gy].inhibitor += 3;
+									break;
+								case "ion":
+								case "ion-blue":
+									grid[gx][gy].alive = grid[gx][gy].color === "wall" ? grid[gx][gy].alive : 0;
+									break;
+								case "thermobaric":
+									// do nothing
+									break;
+								default:
+									grid[gx][gy].alive = 0;
 							}
-						} else {
-							particle.alive = 0;
-							continue;
 						}
 						
 						particle.x += particle.vx;
@@ -892,6 +949,25 @@
 										nextParticles[key] = [];
 									}
 									nextParticles[key].push(particle);
+							}
+						} else {
+							switch (key) {
+								case "thermobaric":
+									for (var j = 0; j < 200; j++) {
+										var dir = Math.random() * 2 * Math.PI;
+										var velocity = 15 + Math.random() * 25;
+										if (!nextParticles["blast"]) {
+											nextParticles["blast"] = [];
+										}
+										nextParticles["blast"].push({
+											x: particle.x,
+											y: particle.y,
+											vx: particle.vx + Math.cos(dir) * velocity,
+											vy: particle.vy + Math.sin(dir) * velocity,
+											alive: 40
+										});
+									}
+									break;
 							}
 						}
 					}
@@ -1053,6 +1129,7 @@
 					case "harvest":
 					case "inhibitor":
 					case "ion":
+					case "thermobaric":
 						mouse.tool = tool;
 				}
 			},
@@ -1081,8 +1158,39 @@
 				resourceField.removeClass("error");
 				resourceField.html(Math.floor(resources));
 				return true;
+			},
+
+			generateMap: function() {
+				for (var x = 0; x < gridWidth; x++) {
+					for (var y = 0; y < gridHeight; y++) {
+						if (Math.random() < 0.1) {
+							grid[x][y].alive = 100;
+							grid[x][y].color = "wall";
+						}
+					}
+				}
+				this.randomWalk(Math.floor(gridWidth / 2), Math.floor(gridHeight / 2), 1000);
+			},
+
+			randomWalk: function(x, y, limit) {
+				x = Math.floor(x);
+				y = Math.floor(y);
+				if (!(limit > 0)) {
+					return;
+				}
+				if (x < 0 || x >= gridWidth || y < 0 || y >= gridHeight) {
+					return;
+				}
+				grid[x][y].alive = 100;
+				grid[x][y].color = "green";
+
+				x += -1 + Math.random() * 3;
+				y += -1 + Math.random() * 3;
+				this.randomWalk(x, y, limit - 1);
 			}
 		};
+
+		ctrl.generateMap();
 
 		return ctrl;
 	};
