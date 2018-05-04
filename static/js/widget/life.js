@@ -2,6 +2,15 @@
 
 (function() {
 
+	/* constants */
+	var Colors = {
+		none: 0,
+		red: 1,
+		green: 2,
+		blue: 3,
+		wall: 4
+	};
+
 	var lifeController = function(widget) {
 		var canvas = $(widget.data("canvas"));
 		if (canvas.length !== 1) {
@@ -34,7 +43,10 @@
 		var cellSize = 10;
 		var gridWidth = 150;
 		var gridHeight = 150;
-		var updateNumber = 0;
+		var stats = {
+			updateNumber: 0,
+			updateGridLast: 0
+		};
 		var resources = 1000;
 		var resourceField = $(".js-widget-field.life-widget.resources");
 
@@ -45,7 +57,8 @@
 			for (var y = 0; y < gridHeight; y++) {
 				grid[x][y] = {
 					alive: 0,
-					inhibitor: 0
+					inhibitor: 0,
+					color: Colors.none
 				};
 			}
 		}
@@ -69,7 +82,7 @@
 
 		var running = false;
 		var mouse = {
-			color: "blue",
+			color: Colors.blue,
 			tool: "draw"
 		};
 		var kb = {};
@@ -130,7 +143,7 @@
 									return;
 								}
 								grid[x][y].alive = 100;
-								grid[x][y].color = "wall";
+								grid[x][y].color = Colors.wall;
 							}, 1000);
 						})();
 						break;
@@ -338,7 +351,7 @@
 									return;
 								}
 								grid[x][y].alive = 100;
-								grid[x][y].color = "wall";
+								grid[x][y].color = Colors.wall;
 							}, 1000);
 						})();
 						break;
@@ -346,7 +359,7 @@
 						if (mouse.x < 0 || mouse.x >= gridWidth || mouse.y < 0 || mouse.y >= gridHeight) {
 							break
 						}
-						if (!grid[mouse.x][mouse.y].alive || grid[mouse.x][mouse.y].color !== "wall" || grid[mouse.x][mouse.y].special !== "resource") {
+						if (!grid[mouse.x][mouse.y].alive || grid[mouse.x][mouse.y].color !== Colors.wall || grid[mouse.x][mouse.y].special !== "resource") {
 							break;
 						}
 						var redundant = false;
@@ -381,7 +394,7 @@
 								if (x < 0 || x >= gridWidth || y < 0 || y >= gridHeight) {
 									return;
 								}
-								if (grid[x][y].alive && grid[x][y].color === "wall" && grid[x][y].special === "resource") {
+								if (grid[x][y].alive && grid[x][y].color === Colors.wall && grid[x][y].special === "resource") {
 									ctrl.addResource(grid[x][y].alive * 5);
 									grid[x][y].alive = 0;
 									grid[x][y].special = null;
@@ -572,7 +585,7 @@
 										return;
 									}
 									grid[x][y].alive = 100;
-									grid[x][y].color = "wall";
+									grid[x][y].color = Colors.wall;
 								}, 1000);
 							})();
 							break;
@@ -620,7 +633,6 @@
 
 		var ctrl = {
 			draw: _.throttle(function() {
-				var startTime = new Date().getTime();
 				ctx.clearRect(0, 0, width, height);
 				var tl = {
 					x: s2gx(0),
@@ -650,13 +662,13 @@
 					for (var y = tl.y; y <= br.y; y++) {
 						if (grid[x][y].alive) {
 							switch (grid[x][y].color) {
-								case "red":
+								case Colors.red:
 									ctx.fillStyle = "#" + life2hex(grid[x][y].alive) + "0000";
 									break;
-								case "green":
+								case Colors.green:
 									ctx.fillStyle = "#00" + life2hex(grid[x][y].alive) + "00"; 
 									break;
-								case "wall":
+								case Colors.wall:
 									switch (grid[x][y].special) {
 										case "resource":
 											ctx.fillStyle = "#66EFFF";
@@ -850,10 +862,10 @@
 
 				if (typeof mouse.x === "number" && typeof mouse.y === "number") {
 					switch (mouse.color) {
-						case "red":
+						case Colors.red:
 							ctx.strokeStyle = "#FF0000";
 							break;
-						case "green":
+						case Colors.green:
 							ctx.strokeStyle = "#00FF00";
 							break;
 						default:
@@ -864,14 +876,13 @@
 					ctx.stroke();
 				}
 
-				var elapsed = String(new Date().getTime() - startTime);
 				ctx.fillStyle = "#FFFFFF";
-				ctx.fillText(elapsed, 10, 10);
+				ctx.fillText(stats.updateGridLast, 10, 10);
 			}, 20),
 
 			update: function() {
 				/* grid */
-				if (updateNumber % 8 === 0) {
+				if (stats.updateNumber % 8 === 0) {
 					this.updateGrid();
 				}
 
@@ -889,7 +900,7 @@
 									break;
 								case "ion":
 								case "ion-blue":
-									grid[gx][gy].alive = grid[gx][gy].color === "wall" ? grid[gx][gy].alive : 0;
+									grid[gx][gy].alive = grid[gx][gy].color === Colors.wall ? grid[gx][gy].alive : 0;
 									break;
 								case "thermobaric":
 									// do nothing
@@ -985,10 +996,11 @@
 				markers = nextMarkers;
 
 				this.draw();
-				updateNumber++;
+				stats.updateNumber++;
 			},
 
 			updateGrid: function() {
+				var startTime = new Date().getTime();
 				/* first pass */
 				for (var x = 0; x < gridWidth; x++) {
 					for (var y = 0; y < gridHeight; y++) {
@@ -998,67 +1010,63 @@
 						var greens = 0;
 						var inhibitorNeighbors = 0;
 						var inhibitorSum = 0;
-
-						var neighborHood = [
-							{x: x + 1, y: y},
-							{x: x + 1, y: y - 1},
-							{x: x, y: y - 1},
-							{x: x - 1, y: y - 1},
-							{x: x - 1, y: y},
-							{x: x - 1, y: y + 1},
-							{x: x, y: y + 1},
-							{x: x + 1, y: y + 1}
-						];
-
-						for (var n = 0; n < neighborHood.length; n++) {
-							var neighbor = neighborHood[n];
-							if (neighbor.x < 0 || neighbor.x >= gridWidth || neighbor.y < 0 || neighbor.y >= gridHeight) {
-								continue;
-							}
-							if (grid[neighbor.x][neighbor.y].alive && grid[neighbor.x][neighbor.y].color !== "wall") {
-								neighbors++;
-								neighborAlives += grid[neighbor.x][neighbor.y].alive;
-								switch (grid[neighbor.x][neighbor.y].color) {
-									case "red":
-										reds++;
-										break;
-									case "green":
-										greens++;
-										break;
+						for (var nx = -1; nx <= 1; nx ++) {
+							for (var ny = -1; ny <= 1; ny++) {
+								if (nx === 0 && ny === 0) {
+									continue;
 								}
+								var gx = x + nx;
+								var gy = y + ny;
+								if (gx < 0 || gy < 0 || gx >= gridWidth || gy >= gridHeight) {
+									continue;
+								}
+
+								if (grid[gx][gy].alive && grid[gx][gy].color !== Colors.wall) {
+									neighbors++;
+									neighborAlives += grid[gx][gy].alive;
+									switch (grid[gx][gy].color) {
+										case Colors.red:
+											reds++;
+											break;
+										case Colors.green:
+											greens++;
+											break;
+									}
+								}
+								inhibitorNeighbors++;
+								inhibitorSum += grid[gx][gy].inhibitor;
 							}
-							inhibitorNeighbors++;
-							inhibitorSum += grid[neighbor.x][neighbor.y].inhibitor;
 						}
+
 						if (inhibitorNeighbors && inhibitorSum) {
 							var average = inhibitorSum / inhibitorNeighbors;
 							grid[x][y].nextInhibitor = grid[x][y].inhibitor + (average - grid[x][y].inhibitor) * 0.1;
 						}
 
-						if (grid[x][y].color === "wall" && grid[x][y].alive) {
+						if (grid[x][y].color === Colors.wall && grid[x][y].alive) {
 							grid[x][y].nextAlive = grid[x][y].alive - (neighborAlives / 100);
 						} else {
 							if (grid[x][y].alive && neighbors >= 2 && neighbors <= 3) {	// survival
-								grid[x][y].nextAlive = grid[x][y].alive + Math.random() * 5;
-							} else if (!grid[x][y].alive && neighbors === 3 && Math.random() < (0.6 - grid[x][y].inhibitor * 0.01)) {	// birth
-								grid[x][y].nextAlive = Math.random() * 5;
+								grid[x][y].nextAlive = grid[x][y].alive + this.fastRandom() % 5;
+							} else if (!grid[x][y].alive && neighbors === 3 && this.fastRandom() < (153 - grid[x][y].inhibitor * 2)) {	// birth
+								grid[x][y].nextAlive = this.fastRandom() % 5;
 								if (reds > greens) {
-									grid[x][y].color = "red";
+									grid[x][y].color = Colors.red;
 								} else if (greens > reds) {
-									grid[x][y].color = "green";
+									grid[x][y].color = Colors.green;
 								} else {
-									grid[x][y].color = "blue";
+									grid[x][y].color = Colors.blue;
 								}
 							} else {
-								grid[x][y].nextAlive = grid[x][y].alive - Math.random() * 15;
+								grid[x][y].nextAlive = grid[x][y].alive - this.fastRandom() % 15;
 							}
 						}
 					}
 				}
 
 				/* second pass */
-				for (var x = 0; x < gridWidth; x++) {
-					for (var y = 0; y < gridHeight; y++) {
+				for (x = 0; x < gridWidth; x++) {
+					for (y = 0; y < gridHeight; y++) {
 						var nextAlive = grid[x][y].nextAlive;
 						nextAlive = nextAlive < 0 ? 0 : nextAlive;
 						nextAlive = nextAlive > 100 ? 100 : nextAlive;
@@ -1076,6 +1084,7 @@
 						}
 					}
 				}
+				stats.updateGridLast = new Date().getTime() - startTime;
 			},
 
 			run: function() {
@@ -1113,11 +1122,16 @@
 			setColor: function(color) {
 				switch (color) {
 				case "blue":
+					mouse.color = Colors.blue;
+					break;
 				case "red":
+					mouse.color = Colors.red;
+					break;
 				case "green":
-					mouse.color = color;
-					this.draw();
+					mouse.color = Colors.green;
+					break;
 				}
+				this.draw();
 			},
 
 			setTool: function(tool) {
@@ -1163,31 +1177,109 @@
 			generateMap: function() {
 				for (var x = 0; x < gridWidth; x++) {
 					for (var y = 0; y < gridHeight; y++) {
-						if (Math.random() < 0.1) {
+						if (Math.random() < 0.6) {
 							grid[x][y].alive = 100;
-							grid[x][y].color = "wall";
+							grid[x][y].color = Colors.wall;
 						}
 					}
 				}
-				this.randomWalk(Math.floor(gridWidth / 2), Math.floor(gridHeight / 2), 1000);
+
+				for (var n = 0; n < 10; n++) {
+					for (var x = 0; x < gridWidth; x++) {
+						for (var y = 0; y < gridHeight; y++) {
+							var neighbors = 0;
+							for (var nx = -1; nx <= 1; nx++) {
+								for (var ny = -1; ny <= 1; ny++) {
+									if (nx === 0 && ny === 0) {
+										continue;
+									}
+									var gx = x + nx;
+									var gy = y + ny;
+
+									if (gx < 0 || gy < 0 || gx >= gridWidth || gy >= gridHeight) {
+										neighbors++;	// count edges as neighbors
+										continue;
+									}
+									if (grid[gx][gy].alive) {
+										neighbors++;
+									}
+								}
+							}
+
+							if (grid[x][y].alive && neighbors < 2 || neighbors > 3) {	// death
+								grid[x][y].nextAlive = 0;
+							} else if (!grid[x][y].alive && neighbors === 3) {	// birth
+								grid[x][y].nextAlive = 100;
+							} else {		// no change
+								grid[x][y].nextAlive = grid[x][y].alive;
+							}
+						}
+					}
+
+					for (x = 0; x < gridWidth; x++) {
+						for (y = 0; y < gridHeight; y++) {
+							grid[x][y].alive = grid[x][y].nextAlive;
+							if (grid[x][y].alive) {
+								grid[x][y].color = Colors.wall;
+							} else {
+								grid[x][y].color = Colors.none;
+							}
+						}
+					}
+				}
+
+				for (x = 0; x < gridWidth; x++) {
+					for (y = 0; y < gridHeight; y++) {
+						neighbors = 0;
+						for (nx = -1; nx <= 1; nx++) {
+							for (ny = -1; ny <= 1; ny++) {
+								if (nx === 0 && ny === 0) {
+									continue;
+								}
+								gx = x + nx;
+								gy = y + ny;
+
+								if (gx < 0 || gy < 0 || gx >= gridWidth || gy >= gridHeight) {
+									neighbors++;	// count edges as neighbors
+									continue;
+								}
+								if (grid[gx][gy].alive) {
+									neighbors++;
+								}
+							}
+						}
+
+						if (neighbors === 0 && Math.random() < 0.05) {
+							grid[x][y].nextColor = Colors.green;
+						}
+					}
+				}
+
+				for (x = 0; x < gridWidth; x++) {
+					for (y = 0; y < gridHeight; y++) {
+						if (grid[x][y].nextColor) {
+							grid[x][y].alive = 100;
+							grid[x][y].color = grid[x][y].nextColor;
+							delete(grid[x][y], "nextColor");
+						}
+					}
+				}
 			},
 
-			randomWalk: function(x, y, limit) {
-				x = Math.floor(x);
-				y = Math.floor(y);
-				if (!(limit > 0)) {
-					return;
-				}
-				if (x < 0 || x >= gridWidth || y < 0 || y >= gridHeight) {
-					return;
-				}
-				grid[x][y].alive = 100;
-				grid[x][y].color = "green";
+			// random uint 0 - 255, takes ~ 60% of Math.random() execution time
+			fastRandom: (function() {
+				var rbuf = new ArrayBuffer(8192);
+				var rview = new Uint8Array(rbuf);
+				var iter = 0;	
 
-				x += -1 + Math.random() * 3;
-				y += -1 + Math.random() * 3;
-				this.randomWalk(x, y, limit - 1);
-			}
+				for (var i = 0; i < rview.length; i++) {
+					rview[i] = Math.floor(Math.random() * 256);
+				}
+
+				return function() {
+					return ++iter >= rview.length ? rview[iter = 0] : rview[iter];
+				}
+			})()
 		};
 
 		ctrl.generateMap();
