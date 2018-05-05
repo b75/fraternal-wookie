@@ -7,9 +7,12 @@
 		none: 0,
 		red: 1,
 		green: 2,
-		blue: 3,
-		wall: 4
+		blue: 4,
+		wall: 8,
+		extractor: 16
 	};
+	Colors.lifeMask = Colors.red | Colors.green | Colors.blue;
+	Colors.structureMask = Colors.wall | Colors.extractor;
 
 	var lifeController = function(widget) {
 		var canvas = $(widget.data("canvas"));
@@ -47,17 +50,19 @@
 			updateNumber: 0,
 			updateGridLast: 0
 		};
-		var resources = 1000;
+		var resources = 150;
 		var resourceField = $(".js-widget-field.life-widget.resources");
 
 		resourceField.html(Math.floor(resources));
 
+		/* grid init */
 		for (var x = 0; x < gridWidth; x++) {
 			grid[x] = [];
 			for (var y = 0; y < gridHeight; y++) {
 				grid[x][y] = {
 					alive: 0,
 					inhibitor: 0,
+					resource: 0,
 					color: Colors.none
 				};
 			}
@@ -359,7 +364,7 @@
 						if (mouse.x < 0 || mouse.x >= gridWidth || mouse.y < 0 || mouse.y >= gridHeight) {
 							break
 						}
-						if (!grid[mouse.x][mouse.y].alive || grid[mouse.x][mouse.y].color !== Colors.wall || grid[mouse.x][mouse.y].special !== "resource") {
+						if (!grid[mouse.x][mouse.y].resource) {
 							break;
 						}
 						var redundant = false;
@@ -375,7 +380,7 @@
 						if (redundant) {
 							break;
 						}
-						if (!ctrl.getResource(10)) {
+						if (!ctrl.getResource(100)) {
 							break;
 						}
 						var marker = {
@@ -394,11 +399,8 @@
 								if (x < 0 || x >= gridWidth || y < 0 || y >= gridHeight) {
 									return;
 								}
-								if (grid[x][y].alive && grid[x][y].color === Colors.wall && grid[x][y].special === "resource") {
-									ctrl.addResource(grid[x][y].alive * 5);
-									grid[x][y].alive = 0;
-									grid[x][y].special = null;
-								}
+								grid[x][y].alive = 100;
+								grid[x][y].color = Colors.extractor;
 							}, 10000);
 						})();
 						break;
@@ -668,21 +670,36 @@
 								case Colors.green:
 									ctx.fillStyle = "#00" + life2hex(grid[x][y].alive) + "00"; 
 									break;
+								case Colors.blue:
+									ctx.fillStyle = "#0000" + life2hex(grid[x][y].alive);
+									break;
 								case Colors.wall:
-									switch (grid[x][y].special) {
-										case "resource":
-											ctx.fillStyle = "#66EFFF";
-											break;
-										default:
-											var hex = life2hex(grid[x][y].alive);
-											ctx.fillStyle = "#" + hex + hex + hex;
-									}
+								case Colors.extractor:
+									var hex = life2hex(grid[x][y].alive);
+									ctx.fillStyle = "#" + hex + hex + hex;
 									break;
 								default:
-									ctx.fillStyle = "#0000" + life2hex(grid[x][y].alive);
+									ctx.fillStyle = "#000000";
 							}
 							ctx.fillRect((x - origin.x) * cellSize, (y - origin.y) * cellSize, cellSize, cellSize);
 							ctx.rect((x - origin.x) * cellSize, (y - origin.y) * cellSize, cellSize, cellSize);
+							if (grid[x][y].color === Colors.extractor) {
+								if (grid[x][y].resource) {
+									var freq = grid[x][y].resource / 1000;
+									var hex1 = life2hex((stats.updateNumber * freq) % 100);
+									var hex2 = life2hex(100 - (stats.updateNumber * freq) % 100);
+									ctx.fillStyle = "#" + hex1 + hex2 + hex1;
+									ctx.fillRect((x - origin.x) * cellSize + 0.25 * cellSize, (y - origin.y) * cellSize + 0.25 * cellSize, 0.5 * cellSize, 0.5 * cellSize);
+								} else {
+									ctx.fillStyle = "#000000";
+									ctx.fillRect((x - origin.x) * cellSize + 0.25 * cellSize, (y - origin.y) * cellSize + 0.25 * cellSize, 0.5 * cellSize, 0.5 * cellSize);
+								}
+							}
+						} else if (grid[x][y].resource) {
+							var hex1 = life2hex(stats.updateNumber % 100);
+							var hex2 = life2hex(100 - stats.updateNumber % 100);
+							ctx.fillStyle = "#" + hex1 + hex2 + hex1;
+							ctx.fillRect((x - origin.x) * cellSize, (y - origin.y) * cellSize, cellSize, cellSize);
 						} else if (grid[x][y].inhibitor) {
 							ctx.fillStyle = "#" + life2hex(grid[x][y].inhibitor) + "0EE3";
 							ctx.fillRect((x - origin.x) * cellSize, (y - origin.y) * cellSize, cellSize, cellSize);
@@ -900,7 +917,7 @@
 									break;
 								case "ion":
 								case "ion-blue":
-									grid[gx][gy].alive = grid[gx][gy].color === Colors.wall ? grid[gx][gy].alive : 0;
+									grid[gx][gy].alive = grid[gx][gy].color & Colors.lifeMask ? 0 : grid[gx][gy].alive;
 									break;
 								case "thermobaric":
 									// do nothing
@@ -1021,7 +1038,7 @@
 									continue;
 								}
 
-								if (grid[gx][gy].alive && grid[gx][gy].color !== Colors.wall) {
+								if (grid[gx][gy].alive && grid[gx][gy].color & Colors.lifeMask) {
 									neighbors++;
 									neighborAlives += grid[gx][gy].alive;
 									switch (grid[gx][gy].color) {
@@ -1043,7 +1060,7 @@
 							grid[x][y].nextInhibitor = grid[x][y].inhibitor + (average - grid[x][y].inhibitor) * 0.1;
 						}
 
-						if (grid[x][y].color === Colors.wall && grid[x][y].alive) {
+						if (grid[x][y].alive && grid[x][y].color & Colors.structureMask) {
 							grid[x][y].nextAlive = grid[x][y].alive - (neighborAlives / 100);
 						} else {
 							if (grid[x][y].alive && neighbors >= 2 && neighbors <= 3) {	// survival
@@ -1076,11 +1093,13 @@
 						nextInhibitor = nextInhibitor > 0 ? nextInhibitor : 0;
 						grid[x][y].inhibitor = nextInhibitor;
 
-						if (!grid[x][y].alive) {
-							grid[x][y].special = null;
-						}
 						if (grid[x][y].inhibitor < 1) {
 							grid[x][y].inhibitor = 0;
+						}
+						if (grid[x][y].color === Colors.extractor && grid[x][y].alive && grid[x][y].resource) {
+							this.addResource(1);
+							grid[x][y].resource--;
+							grid[x][y].resource = Math.max(0, grid[x][y].resource);
 						}
 					}
 				}
@@ -1251,6 +1270,8 @@
 
 						if (neighbors === 0 && Math.random() < 0.05) {
 							grid[x][y].nextColor = Colors.green;
+						} else if (neighbors >= 6 && Math.random() < 0.1) {
+							grid[x][y].nextResource = 1000 + 4000 * Math.random();
 						}
 					}
 				}
@@ -1261,6 +1282,10 @@
 							grid[x][y].alive = 100;
 							grid[x][y].color = grid[x][y].nextColor;
 							delete(grid[x][y], "nextColor");
+						}
+						if (grid[x][y].nextResource) {
+							grid[x][y].resource = grid[x][y].nextResource;
+							delete(grid[x][y].nextResource);
 						}
 					}
 				}
@@ -1279,10 +1304,24 @@
 				return function() {
 					return ++iter >= rview.length ? rview[iter = 0] : rview[iter];
 				}
-			})()
+			})(),
+
+			perfTest: function() {
+				var startTime = new Date().getTime();
+				var x = 101;
+				var y = 102;
+				grid[x][y].color = Colors.blue;
+				grid[x][y].alive = 100|0;
+				for (var i = 0; i < 100000000; i++) {
+					//if (grid[x][y].alive && (grid[x][y].color === Colors.red || grid[x][y].color === Colors.green || grid[x][y].color === Colors.blue)) {}
+					if (grid[x][y].color & Colors.lifeMask) {}
+				}
+				console.log("perfTest elapsed", new Date().getTime() - startTime);
+			}
 		};
 
 		ctrl.generateMap();
+		//ctrl.perfTest();
 
 		return ctrl;
 	};
