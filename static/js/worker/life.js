@@ -15,7 +15,8 @@ const Settings = {
 	gridWidth: 200,
 	gridHeight: 200,
 	lifeStep: 10,
-	blastStructureCoefficient: 80
+	blastStructureCoefficient: 80,
+	fireStructureCoefficient: 5
 };
 
 var RunTicker = null;
@@ -126,6 +127,13 @@ function step() {
 					Buffers.alive[offset] = 0;
 				} else if (Buffers.color[offset] & Colors.structureMask) {
 					Buffers.alive[offset] -= Changes[i].blast * Settings.blastStructureCoefficient;
+				}
+			}
+			if (typeof Changes[i].fire === "number" && Changes[i].fire > 0) {
+				if (Buffers.color[offset] & Colors.lifeMask) {
+					Buffers.alive[offset] = 0;
+				} else if (Buffers.color[offset] & Colors.structureMask) {
+					Buffers.alive[offset] -= Changes[i].fire * Settings.fireStructureCoefficient;
 				}
 			}
 		}

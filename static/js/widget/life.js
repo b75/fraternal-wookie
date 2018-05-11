@@ -16,9 +16,13 @@
 
 	const ParticleTypes = {
 		none: 0,
-		blast: 1
+		blast: 1,
+		napalm: 2,
+		fireWhite: 4,
+		fireYellow: 8,
+		fireRed: 16
 	};
-	ParticleTypes.gridActiveMask = ParticleTypes.blast;
+	ParticleTypes.gridActiveMask = ParticleTypes.blast | ParticleTypes.fireWhite | ParticleTypes.fireYellow | ParticleTypes.fireRed;
 
 	const PARTICLE_SIZE = 35;
 
@@ -53,8 +57,6 @@
 		var particleWorker = null;
 		var grid = [];
 		var particles = [];
-		var particleSets = new Map();
-		particleSets.set(ParticleTypes.blast, new Set());
 		var markers = [];
 		var cellSize = 10;
 		var gridWidth = 200;
@@ -65,6 +67,13 @@
 		};
 		var resources = 15000;	// TODO 150
 		var resourceField = $(".js-widget-field.life-widget.resources");
+
+		var particleSets = new Map();
+		particleSets.set(ParticleTypes.blast, new Set());
+		particleSets.set(ParticleTypes.napalm, new Set());
+		particleSets.set(ParticleTypes.fireWhite, new Set());
+		particleSets.set(ParticleTypes.fireYellow, new Set());
+		particleSets.set(ParticleTypes.fireRed, new Set());
 
 		resourceField.html(Math.floor(resources));
 
@@ -257,7 +266,7 @@
 												velocitySpread: 5,
 												minAlive: 20,
 												aliveSpread: 0,
-												type: 1
+												type: ParticleTypes.blast
 											},
 											{
 												n: 20,
@@ -267,11 +276,11 @@
 												velocitySpread: 5,
 												minAlive: 20,
 												aliveSpread: 0,
-												type: 1
+												type: ParticleTypes.blast
 											}
 										]
 									});
-								}, Math.floor(500 + Math.random() * 500));	// TODO 5000 + 500
+								}, Math.floor(5000 + Math.random() * 500));
 							})();
 						}
 						break;
@@ -294,20 +303,21 @@
 							var cy = mouse.y * cellSize + Math.sin(cdir) * cr;
 							setTimeout(function() {
 								marker.alive = false;
-								for (var i = 0; i < 30; i++) {
-									var dir = Math.random() * 2 * Math.PI;
-									var velocity = Math.random() * 10;
-									if (!particles.napalm) {
-										particles.napalm = [];
-									}
-									particles.napalm.push({
-										x: cx,
-										y: cy,
-										vx: Math.cos(dir) * velocity,
-										vy: Math.sin(dir) * velocity,
-										alive: 200 + 200 * Math.random()
-									});
-								}
+								particleWorker.postMessage({
+									type: "changes",
+									changes: [
+										{
+											n: 30,
+											x: cx,
+											y: cy,
+											minVelocity: 0,
+											velocitySpread: 10,
+											minAlive: 150,
+											aliveSpread: 100,
+											type: ParticleTypes.napalm
+										}
+									]
+								});
 							}, Math.floor(5000 + Math.random() * 1000));
 						})();
 						break;
@@ -1402,10 +1412,13 @@
 					let alive = buffers.particles.getUint8(offset + 32);
 					let type = buffers.particles.getUint8(offset + 34);
 					particles[i].alive = alive;
+					if (particles[i].type && type !== particles[i].type) {
+						particleSets.get(particles[i].type).delete(particles[i]);
+					}
 					particles[i].type = type;
 					if (!alive) {
-						if (type && particleSets.get(particles[i].type).has(particles[i])) {
-							particleSets.get(particles[i].type).delete(particles[i]);
+						for (let set of particleSets.values()) {
+							set.delete(particles[i]);
 						}
 						continue;
 					}
@@ -1423,11 +1436,10 @@
 						if (x >= 0 && x < gridWidth && y >= 0 && y < gridHeight) {
 							let key = x + "-" + y;
 							switch (particles[i].type) {
-								default:
+								case ParticleTypes.blast:
 									if (gridChanges.has(key)) {
 										let change = gridChanges.get(key);
 										change.blast = change.blast ? change.blast + 1 : 1;
-										gridChanges.set(key, change);
 									} else {
 										gridChanges.set(key, {
 											x: x,
@@ -1435,6 +1447,21 @@
 											blast: 1
 										});
 									}
+									break;
+								case ParticleTypes.fireWhite:
+								case ParticleTypes.fireYellow:
+								case ParticleTypes.fireRed:
+									if (gridChanges.has(key)) {
+										let change = gridChanges.get(key);
+										change.fire = change.fire ? change.fire + 1 : 1;
+									} else {
+										gridChanges.set(key, {
+											x: x,
+											y: y,
+											fire: 1
+										});
+									}
+									break;
 							}
 						}
 					}

@@ -13,7 +13,11 @@ var Changes = [];
 
 var Types = {
 	none: 0,
-	blast: 1
+	blast: 1,
+	napalm: 2,
+	fireWhite: 4,
+	fireYellow: 8,
+	fireRed: 16
 };
 
 /*
@@ -28,7 +32,8 @@ var Types = {
 
 const Settings = {
 	dragCoefficient: 0.95,
-	updateInterval: 20
+	updateInterval: 20,
+	checkNewParticles: false
 };
 
 onmessage = function(e) {
@@ -113,6 +118,7 @@ function step() {
 	const numParticles = (Buffer.byteLength / PARTICLE_SIZE)|0;
 
 	let alives = 0;
+	let newParticles = null;
 	for (let i = 0; i < numParticles; i++) {
 		let offset = i * PARTICLE_SIZE;
 		let alive = ParticleView.getUint8(offset + 32);
@@ -138,6 +144,37 @@ function step() {
 		alive--;
 		iter++;
 
+		switch (type) {
+			case Types.napalm:
+				if (Math.random() < 0.3) {
+					let dir = Math.random() * 2 * Math.PI;
+					let velocity = Math.random() * 10;
+					let vx = velocity * Math.cos(dir);
+					let vy = velocity * Math.sin(dir);
+					let type = Types.fireWhite;
+					newParticles = newParticles || [];
+					newParticles.push({
+						x: x,
+						y: y,
+						vx: vx,
+						vy: vy,
+						alive: 30,
+						type: Types.fireWhite
+					});
+				}
+				break;
+			case Types.fireWhite:
+				if (iter > 4) {
+					type = Types.fireYellow;
+				}
+				break;
+			case Types.fireYellow:
+				if (iter > 14) {
+					type = Types.fireRed;
+				}
+				break;
+		}
+
 		/* write */
 		ParticleView.setFloat64(offset, x);
 		ParticleView.setFloat64(offset + 8, y);
@@ -145,6 +182,12 @@ function step() {
 		ParticleView.setFloat64(offset + 24, vy);
 		ParticleView.setUint8(offset + 32, alive);
 		ParticleView.setUint8(offset + 33, iter);
+		ParticleView.setUint8(offset + 34, type);
+	}
+
+	if (newParticles && newParticles.length) {
+		addParticles(newParticles);
+		alives += newParticles.length;
 	}
 
 	postState();
@@ -197,6 +240,27 @@ function addParticles(particles) {
 		let alive = ParticleView.getUint8(offset + 32);
 		if (alive) {
 			continue;
+		}
+
+		if (Settings.checkNewParticles) {
+			if (typeof particles[n].x !== "number") {
+				throw "addParticles: invalid property x: " + JSON.stringify(particles[n]);
+			}
+			if (typeof particles[n].y !== "number") {
+				throw "addParticles: invalid property y: " + JSON.stringify(particles[n]);
+			}
+			if (typeof particles[n].vx !== "number") {
+				throw "addParticles: invalid property vx: " + JSON.stringify(particles[n]);
+			}
+			if (typeof particles[n].vy !== "number") {
+				throw "addParticles: invalid property vy: " + JSON.stringify(particles[n]);
+			}
+			if (typeof particles[n].alive !== "number" || particles[n].alive <= 0 || particles[n].alive > 255) {
+				throw "addParticle: invalid property alive: " + JSON.stringify(particles[n]);
+			}
+			if (typeof particles[n].type !== "number" || particles[n].type <= 0 || particles[n].type > 255) {
+				throw "addParticle: invalid property type: " + JSON.stringify(particles[n]);
+			}
 		}
 
 		ParticleView.setFloat64(offset, particles[n].x);
