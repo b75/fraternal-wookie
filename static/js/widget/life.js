@@ -3,7 +3,7 @@
 (function() {
 
 	/* constants */
-	var Colors = {
+	const Colors = {
 		none: 0,
 		red: 1,
 		green: 2,
@@ -13,6 +13,15 @@
 	};
 	Colors.lifeMask = Colors.red | Colors.green | Colors.blue;
 	Colors.structureMask = Colors.wall | Colors.extractor;
+
+	const ParticleTypes = {
+		none: 0,
+		blast: 1
+	};
+	ParticleTypes.gridActiveMask = ParticleTypes.blast;
+
+	const PARTICLE_SIZE = 35;
+
 
 	var lifeController = function(widget) {
 		var canvas = $(widget.data("canvas"));
@@ -40,17 +49,21 @@
 		canvas[0].width = width;
 		canvas[0].height = height;
 
+		var lifeWorker = null;
+		var particleWorker = null;
 		var grid = [];
-		var particles = {};
+		var particles = [];
+		var particleSets = new Map();
+		particleSets.set(ParticleTypes.blast, new Set());
 		var markers = [];
 		var cellSize = 10;
-		var gridWidth = 150;
-		var gridHeight = 150;
+		var gridWidth = 200;
+		var gridHeight = 200;
 		var stats = {
 			updateNumber: 0,
 			updateGridLast: 0
 		};
-		var resources = 150;
+		var resources = 15000;	// TODO 150
 		var resourceField = $(".js-widget-field.life-widget.resources");
 
 		resourceField.html(Math.floor(resources));
@@ -67,6 +80,11 @@
 				};
 			}
 		}
+		
+		var life2hex = function(life) {
+			var hex = life.toString(16);
+			return hex.length < 2 ? "0" + hex : hex;
+		}
 
 		var s2gx = function(x) {
 			return Math.floor(x / cellSize) + origin.x;
@@ -74,24 +92,13 @@
 		var s2gy = function(y) {
 			return Math.floor(y  / cellSize) + origin.y;
 		};
-		var life2hex = function(life) {
-			var hex = Math.floor(life * 2.55);
-			hex = hex < 0 ? 0 : hex;
-			hex = hex > 255 ? 255 : hex;
-			hex = hex.toString(16);
-			if (hex.length < 2) {
-				hex = "0" + hex;
-			}
-			return hex;
-		};
 
-		var running = false;
 		var mouse = {
 			color: Colors.blue,
 			tool: "draw"
 		};
 		var kb = {};
-		var ticker = null;
+		var updateTicker = null;
 		var origin = {
 			x: 0,
 			y: 0
@@ -105,12 +112,12 @@
 			mouse.x = s2gx(x);
 			mouse.y = s2gy(y);
 
-			if (!running && mouse.tool === "draw" && (mouse.left || mouse.right)) {
+			if (!updateTicker && mouse.tool === "draw" && (mouse.left || mouse.right)) {
 				if (mouse.x >= 0 && mouse.x < gridWidth && mouse.y >= 0 && mouse.y < gridHeight) {
 					grid[mouse.x][mouse.y].alive = mouse.left ? 100 : 0;
 					grid[mouse.x][mouse.y].color = mouse.color;
 				}
-			} else if (running && mouse.left) {
+			} else if (updateTicker && mouse.left) {
 				switch (mouse.tool) {
 					case "wall":
 						if (mouse.x < 0 || mouse.x >= gridWidth || mouse.y < 0 || mouse.y >= gridHeight) {
@@ -147,8 +154,17 @@
 								if (x < 0 || x >= gridWidth || y < 0 || y >= gridHeight) {
 									return;
 								}
-								grid[x][y].alive = 100;
-								grid[x][y].color = Colors.wall;
+								lifeWorker.postMessage({
+									type: "changes",
+									changes: [
+										{
+											x: x,
+											y: y,
+											alive: 255,
+											color: Colors.wall
+										}
+									]
+								});
 							}, 1000);
 						})();
 						break;
@@ -200,13 +216,13 @@
 			if (event.buttons & 2) {
 				mouse.right = true;
 			}
-			if (!running && mouse.tool === "draw" && (mouse.left || mouse.right)) {
+			if (!updateTicker && mouse.tool === "draw" && (mouse.left || mouse.right)) {
 				if (mouse.x >= 0 && mouse.x < gridWidth && mouse.y >= 0 && mouse.y < gridHeight) {
 					grid[mouse.x][mouse.y].alive = mouse.left ? 100 : 0;
 					grid[mouse.x][mouse.y].color = mouse.color;
 				}
 				ctrl.draw();
-			} else if (running && mouse.left) {
+			} else if (updateTicker && mouse.left) {
 				switch (mouse.tool) {
 					case "cluster":
 						if (!ctrl.getResource(100)) {
@@ -230,21 +246,32 @@
 								var ccy = cy;
 								setTimeout(function() {
 									marker.alive = false;
-									for (var j = 0; j < 100; j++) {
-										var dir = Math.random() * 2 * Math.PI;
-										var velocity = Math.random() < 0.8 ? 25 : 10;
-										if (!particles.blast) {
-											particles.blast = [];
-										}
-										particles.blast.push({
-											x: ccx,
-											y: ccy,
-											vx: Math.cos(dir) * velocity,
-											vy: Math.sin(dir) * velocity,
-											alive: 20
-										});
-									}
-								}, Math.floor(5000 + Math.random() * 500));
+									particleWorker.postMessage({
+										type: "changes",
+										changes: [
+											{
+												n: 80,
+												x: ccx,
+												y: ccy,
+												minVelocity: 22.5,
+												velocitySpread: 5,
+												minAlive: 20,
+												aliveSpread: 0,
+												type: 1
+											},
+											{
+												n: 20,
+												x: ccx,
+												y: ccy,
+												minVelocity: 7.5,
+												velocitySpread: 5,
+												minAlive: 20,
+												aliveSpread: 0,
+												type: 1
+											}
+										]
+									});
+								}, Math.floor(500 + Math.random() * 500));	// TODO 5000 + 500
 							})();
 						}
 						break;
@@ -355,8 +382,17 @@
 								if (x < 0 || x >= gridWidth || y < 0 || y >= gridHeight) {
 									return;
 								}
-								grid[x][y].alive = 100;
-								grid[x][y].color = Colors.wall;
+								lifeWorker.postMessage({
+									type: "changes",
+									changes: [
+										{
+											x: x,
+											y: y,
+											alive: 255,
+											color: Colors.wall
+										}
+									]
+								});
 							}, 1000);
 						})();
 						break;
@@ -544,12 +580,12 @@
 			if (changes) {
 				mouse.x = s2gx(mouse.px);
 				mouse.y = s2gy(mouse.py);
-				if (!running && mouse.tool === "draw" && (mouse.left || mouse.right)) {
+				if (!updateTicker && mouse.tool === "draw" && (mouse.left || mouse.right)) {
 					if (mouse.x >= 0 && mouse.x < gridWidth && mouse.y >= 0 && mouse.y < gridHeight) {
 						grid[mouse.x][mouse.y].alive = mouse.left ? 100 : 0;
 						grid[mouse.x][mouse.y].color = mouse.color;
 					}
-				} else if (running && mouse.left) {
+				} else if (updateTicker && mouse.left) {
 					switch (mouse.tool) {
 						case "wall":
 							if (mouse.x < 0 || mouse.x >= gridWidth || mouse.y < 0 || mouse.y >= gridHeight) {
@@ -586,8 +622,17 @@
 									if (x < 0 || x >= gridWidth || y < 0 || y >= gridHeight) {
 										return;
 									}
-									grid[x][y].alive = 100;
-									grid[x][y].color = Colors.wall;
+									lifeWorker.postMessage({
+										type: "changes",
+										changes: [
+											{
+												x: x,
+												y: y,
+												alive: 255,
+												color: Colors.wall
+											}
+										]
+									});
 								}, 1000);
 							})();
 							break;
@@ -708,20 +753,19 @@
 				}
 				ctx.stroke();
 
-				for (var key in particles) {
-					if (key === "napalm") {
+				for (let [key, set] of particleSets) {
+					if (!key || key === ParticleTypes.napalm) {
 						continue;
 					}
 					ctx.beginPath();
-					for (var i = 0; i < particles[key].length; i++) {
-						var particle = particles[key][i];
-						var x = particle.x - (origin.x * cellSize);
-						var y = particle.y - (origin.y * cellSize);
+					for (let particle of set) {
+						let x = particle.x - (origin.x * cellSize);
+						let y = particle.y - (origin.y * cellSize);
 						switch (key) {
-							case "fire-white":
-							case "fire-yellow":
-							case "fire-red":
-							case "inhibitor":
+							case ParticleTypes.fireWhite:
+							case ParticleTypes.fireYellow:
+							case ParticleTypes.fireRed:
+							case ParticleTypes.inhibitor:
 								ctx.moveTo(x, y);
 								ctx.arc(
 									x,
@@ -731,7 +775,7 @@
 									2 * Math.PI
 								);
 								break;
-							case "thermobaric":
+							case ParticleTypes.thermobaric:
 								ctx.moveTo(x, y);
 								ctx.arc(
 									x,
@@ -747,25 +791,25 @@
 						}
 					}
 					switch (key) {
-						case "fire-white":
+						case ParticleTypes.fireWhite:
 							ctx.fillStyle = "rgba(240, 240, 240, 0.8)";
 							break;
-						case "fire-yellow":
+						case ParticleTypes.fireYellow:
 							ctx.fillStyle = "rgba(243, 239, 19, 0.6)";
 							break;
-						case "fire-red":
+						case ParticleTypes.fireRed:
 							ctx.fillStyle = "rgba(230, 20, 2, 0.5)";
 							break;
-						case "inhibitor":
+						case ParticleTypes.inhibitor:
 							ctx.fillStyle = "rgba(240, 14, 227, 0.3)";
 							break;
-						case "ion":
+						case ParticleTypes.ionWhite:
 							ctx.fillStyle = "#FFFFFF";
 							break;
-						case "ion-blue":
+						case ParticleTypes.ionBlue:
 							ctx.fillStyle = "#1240FF";
 							break;
-						case "thermobaric":
+						case ParticleTypes.thermobaric:
 							ctx.fillStyle = "rgba(240, 230, 230, 0.8)";
 							break;
 						default:
@@ -774,7 +818,7 @@
 					ctx.fill();
 				}
 
-				for (i = 0; i < markers.length; i++) {
+				for (let i = 0; i < markers.length; i++) {
 					switch (markers[i].type) {
 						case "cluster_bomb":
 							ctx.beginPath();
@@ -898,12 +942,7 @@
 			}, 20),
 
 			update: function() {
-				/* grid */
-				if (stats.updateNumber % 8 === 0) {
-					this.updateGrid();
-				}
-
-				/* particles */
+				/* TODO remove
 				var nextParticles = {};
 				for (var key in particles) {
 					for (var i = 0; i < particles[key].length; i++) {
@@ -1001,10 +1040,11 @@
 					}
 				}
 				particles = nextParticles;
+				*/
 
 				/* markers */
 				var nextMarkers = [];
-				for (i = 0; i < markers.length; i++) {
+				for (var i = 0; i < markers.length; i++) {
 					if (markers[i].alive) {
 						markers[i].iter = typeof markers[i].iter === "number" && markers[i].iter > 0 ? markers[i].iter - 1 : 20;
 						nextMarkers.push(markers[i]);
@@ -1017,6 +1057,7 @@
 			},
 
 			updateGrid: function() {
+				throw "deprecated";
 				var startTime = new Date().getTime();
 				/* first pass */
 				for (var x = 0; x < gridWidth; x++) {
@@ -1027,7 +1068,7 @@
 						var greens = 0;
 						var inhibitorNeighbors = 0;
 						var inhibitorSum = 0;
-						for (var nx = -1; nx <= 1; nx ++) {
+						for (var nx = -1; nx <= 1; nx++) {
 							for (var ny = -1; ny <= 1; ny++) {
 								if (nx === 0 && ny === 0) {
 									continue;
@@ -1107,35 +1148,39 @@
 			},
 
 			run: function() {
-				if (running) {
+				if (updateTicker) {
 					return;
 				}
-				running = true;
+				if (!lifeWorker || !particleWorker) {
+					throw "workers not initialized";
+				}
+				lifeWorker.postMessage({
+					type: "run"
+				});
+				particleWorker.postMessage({
+					type: "run"
+				});
 				var that = this;
-
-				ticker = setInterval(function() {
+				updateTicker = setInterval(function() {
 					that.update();
 				}, 20);
 			},
 
 			stop: function() {
-				if (!running) {
+				if (!updateTicker) {
 					return;
 				}
-				running = false;
-				clearInterval(ticker);
-			},
-
-			clear: function() {
-				if (running) {
-					return;
+				if (!lifeWorker || !particleWorker) {
+					throw "workers not initialized";
 				}
-				for (var x = 0; x < gridWidth; x++) {
-					for (var y = 0; y < gridHeight; y++) {
-						grid[x][y].alive = false;
-					}
-				}
-				this.draw();
+				lifeWorker.postMessage({
+					type: "stop"
+				});
+				particleWorker.postMessage({
+					type: "stop"
+				});
+				clearInterval(updateTicker);
+				updateTicker = null;
 			},
 
 			setColor: function(color) {
@@ -1291,37 +1336,137 @@
 				}
 			},
 
-			// random uint 0 - 255, takes ~ 60% of Math.random() execution time
-			fastRandom: (function() {
-				var rbuf = new ArrayBuffer(8192);
-				var rview = new Uint8Array(rbuf);
-				var iter = 0;	
-
-				for (var i = 0; i < rview.length; i++) {
-					rview[i] = Math.floor(Math.random() * 256);
+			initWorkers: function() {
+				if (lifeWorker) {
+					throw "initWorkers called twice";
 				}
-
-				return function() {
-					return ++iter >= rview.length ? rview[iter = 0] : rview[iter];
+				if (!window.Worker) {
+					throw "web workers not supported";
 				}
-			})(),
-
-			perfTest: function() {
-				var startTime = new Date().getTime();
-				var x = 101;
-				var y = 102;
-				grid[x][y].color = Colors.blue;
-				grid[x][y].alive = 100|0;
-				for (var i = 0; i < 100000000; i++) {
-					//if (grid[x][y].alive && (grid[x][y].color === Colors.red || grid[x][y].color === Colors.green || grid[x][y].color === Colors.blue)) {}
-					if (grid[x][y].color & Colors.lifeMask) {}
+				particleWorker = new Worker("/assets/js/worker/particle.js");
+				lifeWorker = new Worker("/assets/js/worker/life.js");
+				lifeWorker.onmessage = function(e) {
+					if (typeof e.data !== "object") {
+						console.error("received message from lifeWorker of type " + typeof e.data);
+						return;
+					}
+					switch (e.data.type) {
+						case "update":
+							ctrl.lifeUpdate(e.data.buffers);
+							break;
+						default:
+							console.error("unknown message type from lifeWorker", e.data.type);
+					}
+				};
+				particleWorker.onmessage = function(e) {
+					if (typeof e.data !== "object") {
+						console.error("received message from particleWorker of type " + typeof e.data);
+						return;
+					}
+					switch (e.data.type) {
+						case "update":
+							ctrl.particleUpdate(e.data.buffers);
+							break;
+						default:
+							console.error("unknown message type from particleWorker", e.data.type);
+					}
 				}
-				console.log("perfTest elapsed", new Date().getTime() - startTime);
+				lifeWorker.postMessage({
+					type: "load"
+				});
+			},
+
+			lifeUpdate: function(buffers) {
+				for (var x = 0; x < gridWidth; x++) {
+					for (var y = 0; y < gridHeight; y++) {
+						var offset = x * gridWidth + y;
+						grid[x][y].alive = buffers.alive[offset];
+						grid[x][y].color = buffers.color[offset];
+					}
+				}
+				lifeWorker.postMessage({
+					type: "bufreturn",
+					buffers: buffers
+				}, [buffers.alive.buffer, buffers.color.buffer]);
+				this.draw();
+			},
+
+			particleUpdate: function(buffers) {
+				let numParticles = (buffers.particles.buffer.byteLength / PARTICLE_SIZE)|0;
+				let gridChanges = new Map();
+				for (let i = 0; i < numParticles; i++) {
+					if (i >= particles.length) {
+						particles.push({});
+					}
+					let offset = i * PARTICLE_SIZE;
+					let alive = buffers.particles.getUint8(offset + 32);
+					let type = buffers.particles.getUint8(offset + 34);
+					particles[i].alive = alive;
+					particles[i].type = type;
+					if (!alive) {
+						if (type && particleSets.get(particles[i].type).has(particles[i])) {
+							particleSets.get(particles[i].type).delete(particles[i]);
+						}
+						continue;
+					}
+
+					particles[i].x = buffers.particles.getFloat64(offset);
+					particles[i].y = buffers.particles.getFloat64(offset + 8);
+					particles[i].vx = buffers.particles.getFloat64(offset + 16);
+					particles[i].vy = buffers.particles.getFloat64(offset + 24);
+					particles[i].iter = buffers.particles.getUint8(offset + 33);
+					particleSets.get(particles[i].type).add(particles[i]);
+
+					if (particles[i].type & ParticleTypes.gridActiveMask) {
+						let x = (particles[i].x / cellSize)|0;
+						let y = (particles[i].y / cellSize)|0;
+						if (x >= 0 && x < gridWidth && y >= 0 && y < gridHeight) {
+							let key = x + "-" + y;
+							switch (particles[i].type) {
+								default:
+									if (gridChanges.has(key)) {
+										let change = gridChanges.get(key);
+										change.blast = change.blast ? change.blast + 1 : 1;
+										gridChanges.set(key, change);
+									} else {
+										gridChanges.set(key, {
+											x: x,
+											y: y,
+											blast: 1
+										});
+									}
+							}
+						}
+					}
+				}
+				particleWorker.postMessage({
+					type: "bufreturn",
+					buffers: buffers
+				}, [buffers.particles.buffer]);
+				if (gridChanges.size) {
+					let changes = [];
+					for (let change of gridChanges.values()) {
+						changes.push(change);
+					}
+					lifeWorker.postMessage({
+						type: "changes",
+						changes: changes
+					});
+				}
+				this.draw();
+			},
+
+			particleEmpty: function() {
+				for (let i = 0; i < particles.length; i++) {
+					if (particles[i].length) {
+						particles[i] = [];
+					}
+				}
 			}
 		};
 
-		ctrl.generateMap();
-		//ctrl.perfTest();
+		//ctrl.generateMap();
+		ctrl.initWorkers();
 
 		return ctrl;
 	};
@@ -1339,21 +1484,13 @@
 				if (btn.hasClass("loading")) {
 					ctrl.stop();
 					btn.removeClass("loading");
-					widget.find(".life-widget.clear-button").removeClass("disabled");
-					widget.find(".life-widget.step-button").removeClass("disabled");
 				} else {
 					ctrl.run();
 					btn.addClass("loading");
-					widget.find(".life-widget.clear-button").addClass("disabled");
-					widget.find(".life-widget.step-button").addClass("disabled");
 				}
 			});
 
-			widget.on("click", ".life-widget.clear-button", function(event) {
-				ctrl.clear();
-			}).on("click", ".life-widget.step-button", function(event) {
-				ctrl.update();
-			}).on("change", "input[name=color]", function(event) {
+			widget.on("change", "input[name=color]", function(event) {
 				ctrl.setColor($(this).val());
 			}).on("change", "input[name=tool]", function(event) {
 				ctrl.setTool($(this).val());
