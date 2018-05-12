@@ -12,23 +12,30 @@ Colors.lifeMask = Colors.red | Colors.green | Colors.blue;
 Colors.structureMask = Colors.wall | Colors.extractor;
 
 const Settings = {
-	gridWidth: 200,
-	gridHeight: 200,
+	gridWidth: 300,
+	gridHeight: 300,
 	lifeStep: 10,
+	lifeBirthChance: 153,
 	blastStructureCoefficient: 80,
-	fireStructureCoefficient: 5
+	fireStructureCoefficient: 5,
+	inhibitorIncrement: 3,
+	inhibitorDiffuseSpeed: 0.1,
+	inhibitorEffect: 2
 };
+
+const LOG_PERFORMANCE = false;
 
 var RunTicker = null;
 var Initialized = false;
 var Ownership = true;
-var LogPerformance = false;
 var Changes = [];
 
 var Buffers = {
 	color: null,
 	alive: null,
-	nextAlive: null
+	nextAlive: null,
+	inhibitor: null,
+	nextInhibitor: null
 };
 
 
@@ -57,6 +64,7 @@ onmessage = function(e) {
 		case "bufreturn":
 			Buffers.color = e.data.buffers.color;
 			Buffers.alive = e.data.buffers.alive;
+			Buffers.inhibitor = e.data.buffers.inhibitor;
 			Ownership = true;
 			break;
 		case "changes":
@@ -84,6 +92,8 @@ function load() {
 	Buffers.color = new Uint8Array(size);
 	Buffers.alive = new Uint8ClampedArray(size);
 	Buffers.nextAlive = new Uint8ClampedArray(size);
+	Buffers.inhibitor = new Uint8ClampedArray(size);
+	Buffers.nextInhibitor = new Uint8ClampedArray(size);
 
 	for (var offset = 0; offset < size; offset++) {
 		rand = Math.random();
@@ -108,11 +118,11 @@ function step() {
 		return;
 	}
 
-	if (LogPerformance) {
+	if (LOG_PERFORMANCE) {
 		console.time("grid worker step");
 	}
 	var x, y, nx, ny, gx, gy;
-	var i, offset, rand, neighbors, neighborAlives;
+	var i, offset, rand, neighbors, neighborAlives, inhibitorNeighbors, inhibitorSum;
 
 	if (Changes.length > 0) {
 		for (i = 0; i < Changes.length; i++) {
@@ -136,6 +146,14 @@ function step() {
 					Buffers.alive[offset] -= Changes[i].fire * Settings.fireStructureCoefficient;
 				}
 			}
+			if (typeof Changes[i].ion === "number" && Changes[i].ion > 0) {
+				if (Buffers.color[offset] & Colors.lifeMask) {
+					Buffers.alive[offset] = 0;
+				}
+			}
+			if (typeof Changes[i].inhibitor === "number" && Changes[i].inhibitor > 0) {
+				Buffers.inhibitor[offset] += Changes[i].inhibitor * Settings.inhibitorIncrement;
+			}
 		}
 		Changes = [];
 	}
@@ -145,6 +163,8 @@ function step() {
 		for (y = 0; y < Settings.gridHeight; y++) {
 			neighbors = 0;
 			neighborAlives = 0;
+			inhibitorNeighbors = 0;
+			inhibitorSum = 0;
 
 			/* neighborhood */
 			for (nx = -1; nx <= 1; nx++) {
@@ -163,10 +183,18 @@ function step() {
 						neighbors++;
 						neighborAlives += Buffers.alive[offset] * 0.01;
 					}
+					inhibitorNeighbors++;
+					inhibitorSum += Buffers.inhibitor[offset];
 				}
 			}
 
 			offset = x * Settings.gridWidth + y;
+
+			if (inhibitorNeighbors) {
+				let average = inhibitorSum / inhibitorNeighbors;
+				Buffers.nextInhibitor[offset] = Buffers.inhibitor[offset] + (average - Buffers.inhibitor[offset]) * Settings.inhibitorDiffuseSpeed;
+			}
+
 			if (Buffers.alive[offset]) {	// alive cells
 				if (Buffers.color[offset] & Colors.lifeMask) {	// life
 					rand = (Math.random() * Settings.lifeStep)|0;
@@ -176,9 +204,13 @@ function step() {
 				}
 			} else { 
 				if (neighbors === 3) {		// dead cells, birth
-					rand = (Math.random() * Settings.lifeStep)|0;
-					Buffers.nextAlive[offset] = rand;
-					Buffers.color[offset] = Colors.blue;
+					let rand = (Math.random() * 256)|0;
+					let limit = (Settings.lifeBirthChance - Buffers.inhibitor[offset] * Settings.inhibitorEffect);
+					if (rand < limit) {	// inhibition
+						rand = (Math.random() * Settings.lifeStep)|0;
+						Buffers.nextAlive[offset] = rand;
+						Buffers.color[offset] = Colors.blue;
+					}
 				} else {		// dead cells should stay dead
 					Buffers.nextAlive[offset] = 0;
 				}
@@ -189,10 +221,11 @@ function step() {
 	/* second pass */
 	for (offset = 0; offset < Buffers.alive.length; offset++) {
 		Buffers.alive[offset] = Buffers.nextAlive[offset];
+		Buffers.inhibitor[offset] = Buffers.nextInhibitor[offset];
 	}
 
 	postState();
-	if (LogPerformance) {
+	if (LOG_PERFORMANCE) {
 		console.timeEnd("grid worker step");
 	}
 }
@@ -209,7 +242,8 @@ function postState() {
 		type: "update",
 		buffers: {
 			color: Buffers.color,
-			alive: Buffers.alive
+			alive: Buffers.alive,
+			inhibitor: Buffers.inhibitor
 		}
 	}, [Buffers.color.buffer, Buffers.alive.buffer]);
 }

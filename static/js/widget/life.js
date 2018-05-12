@@ -18,13 +18,16 @@
 		none: 0,
 		blast: 1,
 		napalm: 2,
-		fireWhite: 4,
-		fireYellow: 8,
-		fireRed: 16
+		fireWhite: 3,
+		fireYellow: 4,
+		fireRed: 5,
+		thermobaric: 6,
+		ionWhite: 7,
+		ionBlue: 8,
+		inhibitor: 9
 	};
-	ParticleTypes.gridActiveMask = ParticleTypes.blast | ParticleTypes.fireWhite | ParticleTypes.fireYellow | ParticleTypes.fireRed;
 
-	const PARTICLE_SIZE = 35;
+	const PARTICLE_SIZE = 19;
 
 
 	var lifeController = function(widget) {
@@ -59,13 +62,13 @@
 		var particles = [];
 		var markers = [];
 		var cellSize = 10;
-		var gridWidth = 200;
-		var gridHeight = 200;
+		var gridWidth = 300;
+		var gridHeight = 300;
 		var stats = {
 			updateNumber: 0,
 			updateGridLast: 0
 		};
-		var resources = 15000;	// TODO 150
+		var resources = 100000;	// TODO 150
 		var resourceField = $(".js-widget-field.life-widget.resources");
 
 		var particleSets = new Map();
@@ -74,6 +77,10 @@
 		particleSets.set(ParticleTypes.fireWhite, new Set());
 		particleSets.set(ParticleTypes.fireYellow, new Set());
 		particleSets.set(ParticleTypes.fireRed, new Set());
+		particleSets.set(ParticleTypes.thermobaric, new Set());
+		particleSets.set(ParticleTypes.ionWhite, new Set());
+		particleSets.set(ParticleTypes.ionBlue, new Set());
+		particleSets.set(ParticleTypes.inhibitor, new Set());
 
 		resourceField.html(Math.floor(resources));
 
@@ -196,20 +203,31 @@
 							var y = mouse.y * cellSize + 0.5 * cellSize;
 							setTimeout(function() {
 								marker.alive = false;
-								for (var i = 0; i < 10; i++) {
-									var dir = Math.random() * 2 * Math.PI;
-									var velocity = Math.random() < 0.8 ? 25 : 10;
-									if (!particles.ion) {
-										particles.ion = [];
-									}
-									particles.ion.push({
-										x: x,
-										y: y,
-										vx: Math.cos(dir) * velocity,
-										vy: Math.sin(dir) * velocity,
-										alive: 5
-									});
-								}
+								particleWorker.postMessage({
+									type: "changes",
+									changes: [
+										{
+											n: 8,
+											x: x,
+											y: y,
+											minVelocity: 25,
+											velocitySpread: 0,
+											minAlive: 5,
+											aliveSpread: 0,
+											type: ParticleTypes.ionWhite
+										},
+										{
+											n: 2,
+											x: x,
+											y: y,
+											minVelocity: 10,
+											velocitySpread: 0,
+											minAlive: 5,
+											aliveSpread: 0,
+											type: ParticleTypes.ionWhite
+										}
+									]
+								});
 							}, 1000);
 						})();
 						break;
@@ -340,20 +358,21 @@
 							var cy = mouse.y * cellSize + Math.sin(cdir) * cr;
 							setTimeout(function() {
 								marker.alive = false;
-								for (var i = 0; i < 100; i++) {
-									var dir = Math.random() * 2 * Math.PI;
-									var velocity = Math.random() * 15;
-									if (!particles.thermobaric) {
-										particles.thermobaric = [];
-									}
-									particles.thermobaric.push({
-										x: cx,
-										y: cy,
-										vx: Math.cos(dir) * velocity,
-										vy: Math.sin(dir) * velocity,
-										alive: 100 + Math.random() * 20
-									});
-								}
+								particleWorker.postMessage({
+									type: "changes",
+									changes: [
+										{
+											n: 100,
+											x: cx,
+											y: cy,
+											minVelocity: 0,
+											velocitySpread: 15,
+											minAlive: 100,
+											aliveSpread: 20,
+											type: ParticleTypes.thermobaric
+										}
+									]
+								});
 							}, Math.floor(20000 + Math.random() * 5000));
 						})();
 						break;
@@ -469,20 +488,21 @@
 							var cy = mouse.y * cellSize + Math.sin(cdir) * cr;
 							setTimeout(function() {
 								marker.alive = false;
-								for (var i = 0; i < 40; i++) {
-									var dir = Math.random() * 2 * Math.PI;
-									var velocity = Math.random() * 8;
-									if (!particles.inhibitor) {
-										particles.inhibitor = [];
-									}
-									particles.inhibitor.push({
-										x: cx,
-										y: cy,
-										vx: Math.cos(dir) * velocity,
-										vy: Math.sin(dir) * velocity,
-										alive: 80 + 50 * Math.random()
-									});
-								}
+								particleWorker.postMessage({
+									type: "changes",
+									changes: [
+										{
+											n: 40,
+											x: cx,
+											y: cy,
+											minVelocity: 0,
+											velocitySpread: 8,
+											minAlive: 80,
+											aliveSpread: 50,
+											type: ParticleTypes.inhibitor
+										}
+									]
+								});
 							}, Math.floor(3000 + Math.random() * 500));
 						})();
 						break;
@@ -502,20 +522,31 @@
 							var y = mouse.y * cellSize + 0.5 * cellSize;
 							setTimeout(function() {
 								marker.alive = false;
-								for (var i = 0; i < 10; i++) {
-									var dir = Math.random() * 2 * Math.PI;
-									var velocity = Math.random() < 0.8 ? 25 : 10;
-									if (!particles.ion) {
-										particles.ion = [];
-									}
-									particles.ion.push({
-										x: x,
-										y: y,
-										vx: Math.cos(dir) * velocity,
-										vy: Math.sin(dir) * velocity,
-										alive: 5
-									});
-								}
+								particleWorker.postMessage({
+									type: "changes",
+									changes: [
+										{
+											n: 8,
+											x: x,
+											y: y,
+											minVelocity: 25,
+											velocitySpread: 0,
+											minAlive: 5,
+											aliveSpread: 0,
+											type: ParticleTypes.ionWhite
+										},
+										{
+											n: 2,
+											x: x,
+											y: y,
+											minVelocity: 10,
+											velocitySpread: 0,
+											minAlive: 5,
+											aliveSpread: 0,
+											type: ParticleTypes.ionWhite
+										}
+									]
+								});
 							}, 1000);
 						})();
 				}
@@ -665,20 +696,31 @@
 								var y = mouse.y * cellSize + 0.5 * cellSize;
 								setTimeout(function() {
 									marker.alive = false;
-									for (var i = 0; i < 10; i++) {
-										var dir = Math.random() * 2 * Math.PI;
-										var velocity = Math.random() < 0.8 ? 25 : 10;
-										if (!particles.ion) {
-											particles.ion = [];
-										}
-										particles.ion.push({
-											x: x,
-											y: y,
-											vx: Math.cos(dir) * velocity,
-											vy: Math.sin(dir) * velocity,
-											alive: 5
-										});
-									}
+									particleWorker.postMessage({
+										type: "changes",
+										changes: [
+											{
+												n: 8,
+												x: x,
+												y: y,
+												minVelocity: 25,
+												velocitySpread: 0,
+												minAlive: 5,
+												aliveSpread: 0,
+												type: ParticleTypes.ionWhite
+											},
+											{
+												n: 2,
+												x: x,
+												y: y,
+												minVelocity: 10,
+												velocitySpread: 0,
+												minAlive: 5,
+												aliveSpread: 0,
+												type: ParticleTypes.ionWhite
+											}
+										]
+									});
 								}, 1000);
 							})();
 							break;
@@ -690,6 +732,7 @@
 
 		var ctrl = {
 			draw: _.throttle(function() {
+				let startTime = new Date().getTime();
 				ctx.clearRect(0, 0, width, height);
 				var tl = {
 					x: s2gx(0),
@@ -713,6 +756,7 @@
 					ctx.fillRect((tl.x - origin.x) * cellSize, (tl.y - origin.y) * cellSize, (br.x - tl.x + 1) * cellSize, (br.y - tl.y + 1) * cellSize);
 				}
 
+				/* draw grid */
 				ctx.strokeStyle = "#DDDDDD";
 				ctx.beginPath();
 				for (var x = tl.x; x <= br.x; x++) {
@@ -763,24 +807,37 @@
 				}
 				ctx.stroke();
 
+				/* draw particles */
 				for (let [key, set] of particleSets) {
 					if (!key || key === ParticleTypes.napalm) {
 						continue;
 					}
 					ctx.beginPath();
 					for (let particle of set) {
+						if (!particle.alive) {
+							continue;
+						}
 						let x = particle.x - (origin.x * cellSize);
 						let y = particle.y - (origin.y * cellSize);
 						switch (key) {
 							case ParticleTypes.fireWhite:
 							case ParticleTypes.fireYellow:
 							case ParticleTypes.fireRed:
-							case ParticleTypes.inhibitor:
 								ctx.moveTo(x, y);
 								ctx.arc(
 									x,
 									y,
 									particle.iter,
+									0,
+									2 * Math.PI
+								);
+								break;
+							case ParticleTypes.inhibitor:
+								ctx.moveTo(x, y);
+								ctx.arc(
+									x,
+									y,
+									particle.iter * 0.5,
 									0,
 									2 * Math.PI
 								);
@@ -828,6 +885,7 @@
 					ctx.fill();
 				}
 
+				/* draw markers */
 				for (let i = 0; i < markers.length; i++) {
 					switch (markers[i].type) {
 						case "cluster_bomb":
@@ -948,110 +1006,10 @@
 				}
 
 				ctx.fillStyle = "#FFFFFF";
-				ctx.fillText(stats.updateGridLast, 10, 10);
+				ctx.fillText(new Date().getTime() - startTime, 10, 10);
 			}, 20),
 
 			update: function() {
-				/* TODO remove
-				var nextParticles = {};
-				for (var key in particles) {
-					for (var i = 0; i < particles[key].length; i++) {
-						var particle = particles[key][i];
-						var gx = Math.floor(particle.x / cellSize);
-						var gy = Math.floor(particle.y / cellSize);
-						if (gx >= 0 && gx < gridWidth && gy >= 0 && gy < gridHeight) {
-							switch (key) {
-								case "inhibitor":
-									grid[gx][gy].inhibitor += 3;
-									break;
-								case "ion":
-								case "ion-blue":
-									grid[gx][gy].alive = grid[gx][gy].color & Colors.lifeMask ? 0 : grid[gx][gy].alive;
-									break;
-								case "thermobaric":
-									// do nothing
-									break;
-								default:
-									grid[gx][gy].alive = 0;
-							}
-						}
-						
-						particle.x += particle.vx;
-						particle.y += particle.vy;
-						particle.vx *= 0.95;
-						particle.vy *= 0.95;
-						particle.alive--;
-						particle.iter = typeof particle.iter === "number" && particle.iter > 0 ? particle.iter + 1 : 1;
-						if (particle.alive > 0) {
-							switch (key) {
-								case "fire-white":
-									var nkey = particle.iter > 4 ? "fire-yellow": "fire-white";
-									if (!nextParticles[nkey]) {
-										nextParticles[nkey] = [];
-									}
-									nextParticles[nkey].push(particle);
-									break;
-								case "fire-yellow":
-									var nkey = particle.iter > 14 ? "fire-red": "fire-yellow";
-									if (!nextParticles[nkey]) {
-										nextParticles[nkey] = [];
-									}
-									nextParticles[nkey].push(particle);
-									break;
-								case "ion":
-									var nkey = particle.iter > 2 ? "ion-blue" : "ion";
-									if (!nextParticles[nkey]) {
-										nextParticles[nkey] = [];
-									}
-									nextParticles[nkey].push(particle);
-									break;
-								case "napalm":
-									if (Math.random() < 0.3) {
-										var dir = Math.random() * 2 * Math.PI;
-										var velocity = Math.random() * 10;
-										if (!nextParticles["fire-white"]) {
-											nextParticles["fire-white"] = [];
-										}
-										nextParticles["fire-white"].push({
-											x: particle.x,
-											y: particle.y,
-											vx: particle.vx + Math.cos(dir) * velocity,
-											vy: particle.vy + Math.sin(dir) * velocity,
-											alive: 30
-										});
-									}
-									// fallthrough
-								default:
-									if (!nextParticles[key]) {
-										nextParticles[key] = [];
-									}
-									nextParticles[key].push(particle);
-							}
-						} else {
-							switch (key) {
-								case "thermobaric":
-									for (var j = 0; j < 200; j++) {
-										var dir = Math.random() * 2 * Math.PI;
-										var velocity = 15 + Math.random() * 25;
-										if (!nextParticles["blast"]) {
-											nextParticles["blast"] = [];
-										}
-										nextParticles["blast"].push({
-											x: particle.x,
-											y: particle.y,
-											vx: particle.vx + Math.cos(dir) * velocity,
-											vy: particle.vy + Math.sin(dir) * velocity,
-											alive: 40
-										});
-									}
-									break;
-							}
-						}
-					}
-				}
-				particles = nextParticles;
-				*/
-
 				/* markers */
 				var nextMarkers = [];
 				for (var i = 0; i < markers.length; i++) {
@@ -1064,97 +1022,6 @@
 
 				this.draw();
 				stats.updateNumber++;
-			},
-
-			updateGrid: function() {
-				throw "deprecated";
-				var startTime = new Date().getTime();
-				/* first pass */
-				for (var x = 0; x < gridWidth; x++) {
-					for (var y = 0; y < gridHeight; y++) {
-						var neighbors = 0;
-						var neighborAlives = 0;
-						var reds = 0;
-						var greens = 0;
-						var inhibitorNeighbors = 0;
-						var inhibitorSum = 0;
-						for (var nx = -1; nx <= 1; nx++) {
-							for (var ny = -1; ny <= 1; ny++) {
-								if (nx === 0 && ny === 0) {
-									continue;
-								}
-								var gx = x + nx;
-								var gy = y + ny;
-								if (gx < 0 || gy < 0 || gx >= gridWidth || gy >= gridHeight) {
-									continue;
-								}
-
-								if (grid[gx][gy].alive && grid[gx][gy].color & Colors.lifeMask) {
-									neighbors++;
-									neighborAlives += grid[gx][gy].alive;
-									switch (grid[gx][gy].color) {
-										case Colors.red:
-											reds++;
-											break;
-										case Colors.green:
-											greens++;
-											break;
-									}
-								}
-								inhibitorNeighbors++;
-								inhibitorSum += grid[gx][gy].inhibitor;
-							}
-						}
-
-						if (inhibitorNeighbors && inhibitorSum) {
-							var average = inhibitorSum / inhibitorNeighbors;
-							grid[x][y].nextInhibitor = grid[x][y].inhibitor + (average - grid[x][y].inhibitor) * 0.1;
-						}
-
-						if (grid[x][y].alive && grid[x][y].color & Colors.structureMask) {
-							grid[x][y].nextAlive = grid[x][y].alive - (neighborAlives / 100);
-						} else {
-							if (grid[x][y].alive && neighbors >= 2 && neighbors <= 3) {	// survival
-								grid[x][y].nextAlive = grid[x][y].alive + this.fastRandom() % 5;
-							} else if (!grid[x][y].alive && neighbors === 3 && this.fastRandom() < (153 - grid[x][y].inhibitor * 2)) {	// birth
-								grid[x][y].nextAlive = this.fastRandom() % 5;
-								if (reds > greens) {
-									grid[x][y].color = Colors.red;
-								} else if (greens > reds) {
-									grid[x][y].color = Colors.green;
-								} else {
-									grid[x][y].color = Colors.blue;
-								}
-							} else {
-								grid[x][y].nextAlive = grid[x][y].alive - this.fastRandom() % 15;
-							}
-						}
-					}
-				}
-
-				/* second pass */
-				for (x = 0; x < gridWidth; x++) {
-					for (y = 0; y < gridHeight; y++) {
-						var nextAlive = grid[x][y].nextAlive;
-						nextAlive = nextAlive < 0 ? 0 : nextAlive;
-						nextAlive = nextAlive > 100 ? 100 : nextAlive;
-						grid[x][y].alive = nextAlive;
-
-						var nextInhibitor = grid[x][y].nextInhibitor;
-						nextInhibitor = nextInhibitor > 0 ? nextInhibitor : 0;
-						grid[x][y].inhibitor = nextInhibitor;
-
-						if (grid[x][y].inhibitor < 1) {
-							grid[x][y].inhibitor = 0;
-						}
-						if (grid[x][y].color === Colors.extractor && grid[x][y].alive && grid[x][y].resource) {
-							this.addResource(1);
-							grid[x][y].resource--;
-							grid[x][y].resource = Math.max(0, grid[x][y].resource);
-						}
-					}
-				}
-				stats.updateGridLast = new Date().getTime() - startTime;
 			},
 
 			run: function() {
@@ -1392,12 +1259,13 @@
 						var offset = x * gridWidth + y;
 						grid[x][y].alive = buffers.alive[offset];
 						grid[x][y].color = buffers.color[offset];
+						grid[x][y].inhibitor = buffers.inhibitor[offset];
 					}
 				}
 				lifeWorker.postMessage({
 					type: "bufreturn",
 					buffers: buffers
-				}, [buffers.alive.buffer, buffers.color.buffer]);
+				}, [buffers.alive.buffer, buffers.color.buffer, buffers.inhibitor.buffer]);
 				this.draw();
 			},
 
@@ -1409,8 +1277,8 @@
 						particles.push({});
 					}
 					let offset = i * PARTICLE_SIZE;
-					let alive = buffers.particles.getUint8(offset + 32);
-					let type = buffers.particles.getUint8(offset + 34);
+					let alive = buffers.particles.getUint8(offset + 16);
+					let type = buffers.particles.getUint8(offset + 18);
 					particles[i].alive = alive;
 					if (particles[i].type && type !== particles[i].type) {
 						particleSets.get(particles[i].type).delete(particles[i]);
@@ -1423,46 +1291,69 @@
 						continue;
 					}
 
-					particles[i].x = buffers.particles.getFloat64(offset);
-					particles[i].y = buffers.particles.getFloat64(offset + 8);
-					particles[i].vx = buffers.particles.getFloat64(offset + 16);
-					particles[i].vy = buffers.particles.getFloat64(offset + 24);
-					particles[i].iter = buffers.particles.getUint8(offset + 33);
+					particles[i].x = buffers.particles.getFloat32(offset);
+					particles[i].y = buffers.particles.getFloat32(offset + 4);
+					particles[i].vx = buffers.particles.getFloat32(offset + 8);
+					particles[i].vy = buffers.particles.getFloat32(offset + 12);
+					particles[i].iter = buffers.particles.getUint8(offset + 17);
 					particleSets.get(particles[i].type).add(particles[i]);
 
-					if (particles[i].type & ParticleTypes.gridActiveMask) {
-						let x = (particles[i].x / cellSize)|0;
-						let y = (particles[i].y / cellSize)|0;
-						if (x >= 0 && x < gridWidth && y >= 0 && y < gridHeight) {
-							let key = x + "-" + y;
-							switch (particles[i].type) {
-								case ParticleTypes.blast:
-									if (gridChanges.has(key)) {
-										let change = gridChanges.get(key);
-										change.blast = change.blast ? change.blast + 1 : 1;
-									} else {
-										gridChanges.set(key, {
-											x: x,
-											y: y,
-											blast: 1
-										});
-									}
-									break;
-								case ParticleTypes.fireWhite:
-								case ParticleTypes.fireYellow:
-								case ParticleTypes.fireRed:
-									if (gridChanges.has(key)) {
-										let change = gridChanges.get(key);
-										change.fire = change.fire ? change.fire + 1 : 1;
-									} else {
-										gridChanges.set(key, {
-											x: x,
-											y: y,
-											fire: 1
-										});
-									}
-									break;
-							}
+					let x = (particles[i].x / cellSize)|0;
+					let y = (particles[i].y / cellSize)|0;
+					if (x >= 0 && x < gridWidth && y >= 0 && y < gridHeight) {
+						let key = x + "-" + y;
+						switch (particles[i].type) {
+							case ParticleTypes.blast:
+								if (gridChanges.has(key)) {
+									let change = gridChanges.get(key);
+									change.blast = change.blast ? change.blast + 1 : 1;
+								} else {
+									gridChanges.set(key, {
+										x: x,
+										y: y,
+										blast: 1
+									});
+								}
+								break;
+							case ParticleTypes.fireWhite:
+							case ParticleTypes.fireYellow:
+							case ParticleTypes.fireRed:
+								if (gridChanges.has(key)) {
+									let change = gridChanges.get(key);
+									change.fire = change.fire ? change.fire + 1 : 1;
+								} else {
+									gridChanges.set(key, {
+										x: x,
+										y: y,
+										fire: 1
+									});
+								}
+								break;
+							case ParticleTypes.ionWhite:
+							case ParticleTypes.ionBlue:
+								if (gridChanges.has(key)) {
+									let change = gridChanges.get(key);
+									change.ion = change.ion ? change.ion + 1 : 1;
+								} else {
+									gridChanges.set(key, {
+										x: x,
+										y: y,
+										ion: 1
+									});
+								}
+								break;
+							case ParticleTypes.inhibitor:
+								if (gridChanges.has(key)) {
+									let change = gridChanges.get(key);
+									change.inhibitor = change.inhibitor ? change.inhibitor + 1 : 1;
+								} else {
+									gridChanges.set(key, {
+										x: x,
+										y: y,
+										inhibitor: 1
+									});
+								}
+								break;
 						}
 					}
 				}
