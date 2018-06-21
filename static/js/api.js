@@ -72,10 +72,11 @@ var Api = (function() {
 				});
 			},
 
-			groupFeeds: function(groupId, after) {
+			groupFeeds: function(groupId, after, limit) {
 				return Api.call("GET", "/groupfeeds", {
 					Id: String(groupId),
-					After: after ? String(after) : "0"
+					After: after ? String(after) : "0",
+					Limit: limit ? String(limit) : "0",
 				});
 			},
 

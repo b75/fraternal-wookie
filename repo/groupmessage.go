@@ -10,14 +10,25 @@ type groupMessageRepo struct {
 	db *sql.DB
 }
 
-func (r *groupMessageRepo) FindByGroup(group *model.Group, after int64) model.GroupMessageViews {
+func (r *groupMessageRepo) FindByGroup(group *model.Group, after int64, limit int64) model.GroupMessageViews {
 	msgs := model.GroupMessageViews{}
 
 	if group == nil {
 		return msgs
 	}
 
-	rows, err := r.db.Query("SELECT id, ctime, group_id, user_id, message, username FROM work_group_message_view WHERE group_id = $1 AND id > $2 ORDER BY ctime", group.Id, after)
+	sql := "SELECT id, ctime, group_id, user_id, message, username FROM work_group_message_view WHERE group_id = $1 AND id > $2 ORDER BY ctime DESC"
+	args := []interface{}{
+		group.Id,
+		after,
+	}
+
+	if limit > 0 {
+		sql += " LIMIT $3"
+		args = append(args, limit)
+	}
+
+	rows, err := r.db.Query(sql, args...)
 	if err != nil {
 		panic(err)
 	}
@@ -42,7 +53,12 @@ func (r *groupMessageRepo) FindByGroup(group *model.Group, after int64) model.Gr
 		panic(err)
 	}
 
-	return msgs
+	inverted := model.GroupMessageViews{}
+	for i := len(msgs) - 1; i >= 0; i-- {
+		inverted = append(inverted, msgs[i])
+	}
+
+	return inverted
 }
 
 func (r *groupMessageRepo) Insert(gm *model.GroupMessage) error {

@@ -19,6 +19,12 @@
 						}
 						widget.append(tpl(msg));
 					});
+					var msgs = widget.children();
+					msgs.each(function(i, msg) {
+						if (msgs.length - i > 10) {
+							msg.remove();
+						}
+					});
 				}).fail(function(error) {
 					Util.handleFail(error);
 				});

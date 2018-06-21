@@ -29,7 +29,7 @@ func requestGroupMessages(rq *http.Request) (apirouter.Handler, error) {
 	return &GroupMessages{
 		Group:    group,
 		Admin:    repo.Users.Find(group.Admin),
-		Messages: repo.GroupMessages.FindByGroup(group, parseId(query.Get("After"))),
+		Messages: repo.GroupMessages.FindByGroup(group, parseId(query.Get("After")), parseId(query.Get("Limit"))),
 	}, nil
 }
 
