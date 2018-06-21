@@ -40,6 +40,7 @@ func connect(w http.ResponseWriter, rq *http.Request) {
 
 	closeChan := make(chan struct{}, 1)
 	readChan := make(chan []byte)
+	pongChan := make(chan string)
 	listener := &event.Listener{}
 	listener.On(event.EventTypeHeartbeat, func(e event.Event) {
 		handleWrite(c, "heartbeat")
@@ -48,6 +49,16 @@ func connect(w http.ResponseWriter, rq *http.Request) {
 	})
 	broadcaster.RegisterListener(listener)
 	defer broadcaster.RemoveListener(listener)
+
+	if err = c.SetReadDeadline(time.Now().Add(time.Minute)); err != nil {
+		panic(err)
+	}
+	c.SetPongHandler(func(data string) error {
+		pongChan <- data
+		return nil
+	})
+	pingTicker := time.NewTicker(15 * time.Second)
+	defer pingTicker.Stop()
 
 	go func(rc chan<- []byte, cc chan<- struct{}) {
 		for {
@@ -71,6 +82,14 @@ connLoop:
 		case msg := <-readChan:
 			log.Printf("websocket msg: %s", string(msg))
 			handleMessage(msg, c, listener)
+		case <-pongChan:
+			if err := c.SetReadDeadline(time.Now().Add(time.Minute)); err != nil {
+				panic(err)
+			}
+		case <-pingTicker.C:
+			if err := c.WriteMessage(websocket.PingMessage, nil); err != nil {
+				log.Printf("websocket error writing ping message: %v", err)
+			}
 		}
 	}
 
