@@ -29,7 +29,7 @@ func requestGroupFeeds(rq *http.Request) (apirouter.Handler, error) {
 	return &GroupFeeds{
 		Group: group,
 		Admin: repo.Users.Find(group.Admin),
-		Feeds: repo.GroupFeeds.FindByGroup(group, parseId(query.Get("After"))),
+		Feeds: repo.GroupFeeds.FindByGroup(group, parseId(query.Get("After")), nil),
 	}, nil
 }
 

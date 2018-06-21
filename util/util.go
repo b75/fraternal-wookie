@@ -8,7 +8,12 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 )
+
+const DateTimeFormat = "2006-01-02 15:04:05"
+
+const Month time.Duration = time.Duration(30 * 24 * time.Hour)
 
 func LoadTemplates(tplRoot string, fmap template.FuncMap) (*template.Template, error) {
 	files := []string{}
@@ -52,4 +57,8 @@ func LoadTemplates(tplRoot string, fmap template.FuncMap) (*template.Template, e
 	}
 
 	return tpls, nil
+}
+
+func FormatDateTime(t time.Time) string {
+	return t.In(time.Local).Format(DateTimeFormat)
 }

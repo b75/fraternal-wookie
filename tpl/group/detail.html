@@ -4,13 +4,18 @@
 
 <div class="ui center aligned main container js-widget group-detail-widget" data-group-id="{{.Group.Id}}">
 
-	<h3 class="ui header"><i class="users icon"></i> <span class="js-field" data-field="group-name">{{.Group.Name}}</span></h3>
+	<h3 class="ui header js-field" data-field="group-name">{{.Group.Name}}</h3>
 
 	<div class="ui horizontal divider"> <i class="users icon"></i></div>
 
 	<div class="ui grid">
 
 		<div class="four wide left aligned column">
+			<h4 class="ui top attached header"><i class="home icon"></i> Home</h4>
+			<div class="ui attached segment">
+				<a href="/grouphome?Id={{.Group.Id}}">{{.Group.Name}} Home Page</a>
+			</div>
+
 			<h4 class="ui top attached header"><i class="user icon"></i> Members</h4>
 			<div class="ui attached segment">
 				<div class="ui relaxed selection list">
@@ -88,7 +93,7 @@
 								<p>{{.Body}}</p>
 							</div>
 							<div class="ui bottom attached segment">
-								<p>{{.Ctime}}</p>
+								<p>{{.Ctime | datetime}}</p>
 							</div>
 						</div>
 						<div class="ui bottom attached right aligned segment">

@@ -2,10 +2,12 @@ package handler
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/b75/fraternal-wookie/model"
 	"github.com/b75/fraternal-wookie/repo"
 	"github.com/b75/fraternal-wookie/router"
+	"github.com/b75/fraternal-wookie/util"
 )
 
 func init() {
@@ -29,13 +31,15 @@ func requestGroupHome(rq *http.Request) (router.Handler, error) {
 		return nil, router.ErrNotFound()
 	}
 
+	since := time.Now().Add(-util.Month)
+
 	return &GroupHome{
 		CurrentUser: currentUser(rq),
 		Group:       group,
 		Admin:       repo.Users.Find(group.Admin),
 		Members:     repo.Groups.Members(group),
 		Messages:    repo.GroupMessages.FindByGroup(group, 0, 10),
-		Feeds:       repo.GroupFeeds.FindByGroup(group, 0),
+		Feeds:       repo.GroupFeeds.FindByGroup(group, 0, &since),
 	}, nil
 }
 
