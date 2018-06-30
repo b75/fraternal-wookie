@@ -24,7 +24,7 @@ func main() {
 	c := conf.Get()
 
 	router.LoadTemplates(c.TplDir())
-	router.ReloadTemplates = c.ReloadTemplates
+	router.ReloadTemplates = c.Debug.ReloadTemplates
 	repo.Initialize(c.Db)
 	if err := repo.Sessions.DeleteExpired(); err != nil {
 		log.Printf("error deleting expired sessions: %v", err)

@@ -11,6 +11,7 @@ var Sessions *sessionRepo
 var Groups *groupRepo
 var GroupMessages *groupMessageRepo
 var GroupFeeds *groupFeedRepo
+var Uploads *uploadRepo
 
 var db *sql.DB
 
@@ -31,4 +32,5 @@ func Initialize(connStr string) {
 	Groups = &groupRepo{db: db}
 	GroupMessages = &groupMessageRepo{db: db}
 	GroupFeeds = &groupFeedRepo{db: db}
+	Uploads = &uploadRepo{db: db}
 }

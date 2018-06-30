@@ -45,4 +45,25 @@ $(function() {
 			});
 		}
 	});
+
+	var groupUploadFileModal = $("#group-upload-file-modal");
+	if (groupUploadFileModal.length) {
+		let form = $("#group-upload-file-form");
+		let input = form.find("input[name=File]");
+		input.files = [];
+
+		form.find(".js-select-file").on("click", function(event) {
+			event.preventDefault();
+			input.click();
+		});
+
+		groupUploadFileModal.modal({
+			onShow: function(elem) {
+				form[0].reset();
+			},
+			onApprove: function(elem) {
+				Upload.multiple(input[0].files);
+			}
+		});
+	}
 });

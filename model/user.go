@@ -20,6 +20,10 @@ func (u *User) Is(other *User) bool {
 	return u.Id == other.Id
 }
 
+func (u *User) HasId(id int64) bool {
+	return u != nil && u.Id == id
+}
+
 func (u *User) HtmlEscape() {
 	u.Username = template.HTMLEscapeString(u.Username)
 	u.Email = template.HTMLEscapeString(u.Email)

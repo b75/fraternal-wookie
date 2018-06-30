@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"os"
+	"path/filepath"
 	"sync"
 )
 
@@ -12,11 +13,12 @@ var ErrNotLoaded = errors.New("config not loaded")
 var lock *sync.RWMutex = &sync.RWMutex{}
 
 type Config struct {
-	BaseDir         string
-	Db              string
-	Session         SessionConfig
-	Api             ApiConfig
-	ReloadTemplates bool
+	BaseDir string
+	DataDir string
+	Db      string
+	Session SessionConfig
+	Api     ApiConfig
+	Debug   DebugConfig
 }
 
 type SessionConfig struct {
@@ -35,12 +37,20 @@ type ApiConfig struct {
 	Expiry         uint64
 }
 
+type DebugConfig struct {
+	ReloadTemplates bool
+}
+
 func (c *Config) StaticDir() string {
-	return c.BaseDir + "/static"
+	return filepath.Join(c.BaseDir, "static")
 }
 
 func (c *Config) TplDir() string {
-	return c.BaseDir + "/tpl"
+	return filepath.Join(c.BaseDir, "tpl")
+}
+
+func (c *Config) UploadDir() string {
+	return filepath.Join(c.DataDir, "upload")
 }
 
 var current *Config
@@ -64,6 +74,11 @@ func Load(fname string) {
 		current = nil
 		panic(err)
 	}
+
+	if err = check(); err != nil {
+		current = nil
+		panic(err)
+	}
 }
 
 // NOTE would be safer to pass copies but let's avoid unnecessary allocs
@@ -76,4 +91,72 @@ func Get() *Config {
 	}
 
 	return current
+}
+
+func check() error {
+	type check struct {
+		ok      bool
+		failmsg string
+	}
+
+	checks := []check{
+		check{
+			ok:      current.BaseDir != "",
+			failmsg: "Config.BaseDir not defined",
+		},
+		check{
+			ok:      current.DataDir != "",
+			failmsg: "Config.DataDir not defined",
+		},
+		check{
+			ok:      current.Db != "",
+			failmsg: "Config.Db not defined",
+		},
+		// session
+		check{
+			ok:      current.Session.Domain != "",
+			failmsg: "Config.Session.Domain not defined",
+		},
+		check{
+			ok:      current.Session.ExpireHours != 0,
+			failmsg: "Config.Session.ExpireHours is 0",
+		},
+		check{
+			ok:      len(current.Session.AllowedReferrers) != 0,
+			failmsg: "Config.Session.AllowedReferrers is empty",
+		},
+		// api
+		check{
+			ok:      current.Api.Url != "",
+			failmsg: "Config.Api.Url not defined",
+		},
+		check{
+			ok:      current.Api.ConnectionPath != "",
+			failmsg: "Config.Api.ConnectionPath not defined",
+		},
+		check{
+			ok:      current.Api.Secret != "",
+			failmsg: "Config.Api.Secret not defined",
+		},
+		check{
+			ok:      current.Api.AuthIssuer != "",
+			failmsg: "Config.Api.AuthIssuer not defined",
+		},
+		check{
+			ok:      current.Api.AuthAudience != "",
+			failmsg: "Config.Api.AuthAudience not defined",
+		},
+		check{
+			ok:      current.Api.Expiry != 0,
+			failmsg: "Config.Api.Expiry is 0",
+		},
+	}
+
+	for _, chk := range checks {
+		if !chk.ok {
+			return errors.New(chk.failmsg)
+		}
+	}
+
+	return nil
 }

@@ -26,7 +26,7 @@ var Api = (function() {
 								dfd.reject(response.Error);
 							}
 						}).fail(function(xhr) {
-							dfd.reject(xhr.responseJSON ? xhr.responseJSON.Error : xhr.responseText);
+							dfd.reject((xhr.responseJSON ? xhr.responseJSON.Error : xhr.responseText) || "unknown error");
 						});
 						break;
 					case "POST":
@@ -47,7 +47,7 @@ var Api = (function() {
 								dfd.reject(response.Error);
 							}
 						}).fail(function(xhr, foo, bar, car) {
-							dfd.reject(xhr.responseJSON ? xhr.responseJSON.Error : xhr.responseText);
+							dfd.reject((xhr.responseJSON ? xhr.responseJSON.Error : xhr.responseText) || "unknown error");
 						});
 						break;
 					default:
@@ -84,7 +84,7 @@ var Api = (function() {
 				return Api.call("GET", "/group", {
 					Id: String(groupId)
 				});
-			}
+			},
 		},
 
 		post: {
@@ -98,7 +98,11 @@ var Api = (function() {
 
 			groupFeedNew: function(groupId, data) {
 				return Api.call("POST", "/groupfeed/new?GroupId=" + String(groupId), data);
-			}
+			},
+
+			uploadNew: function(data) {
+				return Api.call("POST", "/uploadnew", data);
+			},
 		},
 
 		setUrl: function(url) {
@@ -110,6 +114,10 @@ var Api = (function() {
 			}
 			apiUrl = url;
 			return true;
+		},
+
+		getUrl: function() {
+			return apiUrl;
 		},
 
 		isSuccess: function(response) {

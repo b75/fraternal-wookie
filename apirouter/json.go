@@ -11,7 +11,9 @@ type HtmlEscaper interface {
 }
 
 func JsonResponse(w http.ResponseWriter, data HtmlEscaper) error {
-	data.HtmlEscape()
+	if data != nil {
+		data.HtmlEscape()
+	}
 	response := map[string]interface{}{
 		"Success": true,
 		"Result":  data,

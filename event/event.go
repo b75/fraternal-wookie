@@ -81,7 +81,7 @@ func (b *Broadcaster) run() {
 		}
 	}()
 
-	heartbeat := time.NewTicker(10 * time.Second)
+	heartbeat := time.NewTicker(30 * time.Second)
 mainLoop:
 	for {
 		select {
