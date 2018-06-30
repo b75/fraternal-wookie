@@ -32,7 +32,32 @@
 				</div>
 			</div>
 		</div>
-		<div class="eight wide column"></div>
+
+		<div class="eight wide column">
+			<div class="ui tabular menu">
+				<div class="active item" data-tab="feed">Feed</div>
+				<div class="item" data-tab="files">Files</div>
+			</div>
+			<div class="ui active tab" data-tab="feed">
+				<h4 class="ui header">TODO</h4>
+			</div>
+			<div class="ui tab" data-tab="files">
+				<h4 class="ui top attached header"><i class="upload icon"></i> Uploads</h4>
+				<div class="ui attached segment">
+					<div class="ui grid">
+						<div class="sixteen wide right aligned column">
+							<div class="ui green labeled icon button js-modal-button" data-modal="#upload-modal">
+								<i class="upload icon"></i> Upload
+							</div>
+						</div>
+						<div class="sixteen wide column">
+							<div class="js-widget upload-status-widget"></div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
 		<div class="four wide left aligned column">
 			<h4 class="ui top attached header"><i class="users icon"></i> Groups administered by me</h4>
 			<div class="ui attached segment">
@@ -57,7 +82,31 @@
 			</div>
 		</div>
 	</div>
+</div>
 
+<div id="upload-modal" class="ui modal">
+	<i class="close icon"></i>
+	<div class="header">Upload File</div>
+	<div class="content">
+		<div class="ui segment">
+			<form id="upload-form" class="ui form">
+				<div class="field">
+					<input type="file" style="display:none" name="File" multiple/>
+					<div class="ui input">
+						<div class="ui blue labeled icon button js-select-file">
+							<i class="file icon"></i> Select Files
+						</div>
+					</div>
+				</div>
+			</form>
+		</div>
+	</div>
+	<div class="actions">
+		<div class="ui cancel button">Cancel</div>
+		<div class="ui ok blue labeled icon button">
+			<i class="upload icon"></i> Upload
+		</div>
+	</div>
 </div>
 
 {{template "footer.html"}}

@@ -7,7 +7,7 @@ const Status = {
 
 const Queue = [];
 
-var RunTicker = setInterval(step, 1000);
+var RunTicker = setInterval(step, 500);
 var Uploading = false;
 
 const Settings = {

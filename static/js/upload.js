@@ -34,7 +34,25 @@ var Upload = (function() {
 		Api.post.uploadNew(data).done(function(result) {
 			handleFile(key, file, result);
 		}).fail(function(error) {
-			Util.handleFail(error);
+			let job = uploads.get(key);
+			job.status = Status.error;
+			job.error = error;
+
+			$("body").trigger({
+				type: "upload-status-change",
+				upload: {
+					key: key,
+					job: job
+				}
+			});
+		});
+		$("body").trigger({
+			type: "new-upload",
+			upload: {
+				key: key,
+				filename: file.name,
+				size: file.size
+			}
 		});
 	};
 
@@ -78,6 +96,14 @@ var Upload = (function() {
 		if (typeof e.data.remaining === "number") {
 			job.remaining = e.data.remaining;
 		}
+
+		$("body").trigger({
+			type: "upload-status-change",
+			upload: {
+				key: e.data.key,
+				job: job
+			}
+		});
 	};
 
 	$.when(Token.get()).then(function(token) {

@@ -46,9 +46,9 @@ $(function() {
 		}
 	});
 
-	var groupUploadFileModal = $("#group-upload-file-modal");
-	if (groupUploadFileModal.length) {
-		let form = $("#group-upload-file-form");
+	var uploadModal = $("#upload-modal");
+	if (uploadModal.length) {
+		let form = $("#upload-form");
 		let input = form.find("input[name=File]");
 		input.files = [];
 
@@ -57,7 +57,7 @@ $(function() {
 			input.click();
 		});
 
-		groupUploadFileModal.modal({
+		uploadModal.modal({
 			onShow: function(elem) {
 				form[0].reset();
 			},

@@ -37,7 +37,6 @@
 			<div class="ui tabular menu">
 				<div class="active item" data-tab="feed">Feed</div>
 				<div class="item" data-tab="chat">Chat</div>
-				<div class="item" data-tab="files">Files</div>
 			</div>
 			<div class="ui active tab" data-tab="feed">
 				<div class="ui raised olive segment">
@@ -77,15 +76,6 @@
 					<div class="ui error message"></div>
 				</form>
 			</div>
-			<div class="ui tab" data-tab="files">
-				<div class="ui grid">
-					<div class="sixteen wide right aligned column">
-						<div class="ui green labeled icon button js-modal-button" data-modal="#group-upload-file-modal">
-							<i class="upload icon"></i> Upload
-						</div>
-					</div>
-				</div>
-			</div>
 		</div>
 
 		<div class="four wide left aligned column">
@@ -96,31 +86,6 @@
 					<div class="description"><a href="mailto:{{.Admin.Email}}">{{.Admin.Email}}</a></div>
 				</div>
 			</div>
-		</div>
-	</div>
-</div>
-
-<div id="group-upload-file-modal" class="ui modal">
-	<i class="close icon"></i>
-	<div class="header">Upload File To {{.Group.Name}}</div>
-	<div class="content">
-		<div class="ui segment">
-			<form id="group-upload-file-form" class="ui form" data-group-id="{{.Group.Id}}">
-				<div class="field">
-					<input type="file" style="display:none" name="File" multiple/>
-					<div class="ui input">
-						<div class="ui blue labeled icon button js-select-file">
-							<i class="file icon"></i> Select Files
-						</div>
-					</div>
-				</div>
-			</form>
-		</div>
-	</div>
-	<div class="actions">
-		<div class="ui cancel button">Cancel</div>
-		<div class="ui ok blue labeled icon button">
-			<i class="upload icon"></i> Upload
 		</div>
 	</div>
 </div>

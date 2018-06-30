@@ -30,6 +30,16 @@ var Tpl = (function() {
 			html +=    ' </div>';
 			html +=    '</div>';
 			return html;
+		},
+
+		upload: function() {
+			var html = '<div class="ui progress" data-key="<%= key %>">';
+			html +=    ' <div class="bar">';
+			html +=    '  <div class="progress"></div>';
+			html +=    ' </div>';
+			html +=    ' <div class="label"><%= filename %></div>';
+			html +=    '</div>';
+			return html;
 		}
 	};
 })();
