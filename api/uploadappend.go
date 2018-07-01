@@ -3,6 +3,7 @@ package api
 import (
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -11,6 +12,7 @@ import (
 	"github.com/b75/fraternal-wookie/conf"
 	"github.com/b75/fraternal-wookie/model"
 	"github.com/b75/fraternal-wookie/repo"
+	"github.com/b75/fraternal-wookie/upload"
 )
 
 func init() {
@@ -41,7 +43,6 @@ func (page *UploadAppend) CanAccess(current *model.User) bool {
 func (page *UploadAppend) HandlePost(w http.ResponseWriter, rq *http.Request) error {
 	fname := filepath.Join(conf.Get().UploadDir(), page.Upload.Code)
 
-	// TODO block dir traversal
 	// TODO block concurrent access
 
 	var size int64
@@ -67,7 +68,7 @@ func (page *UploadAppend) HandlePost(w http.ResponseWriter, rq *http.Request) er
 		return err
 	}
 
-	_, err = io.CopyN(f, rq.Body, available)
+	n, err := io.CopyN(f, rq.Body, available)
 	if err != nil && err != io.EOF {
 		f.Close()
 		return err
@@ -75,6 +76,14 @@ func (page *UploadAppend) HandlePost(w http.ResponseWriter, rq *http.Request) er
 
 	if err = f.Close(); err != nil {
 		return err
+	}
+
+	if available-n <= 0 { // should be always >= 0
+		goSafe(func() {
+			if err := upload.HandleUpload(page.Upload); err != nil {
+				log.Printf("upload.HandleUpload failed: %v", err)
+			}
+		})
 	}
 
 	return apirouter.JsonResponse(w, nil)

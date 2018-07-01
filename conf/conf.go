@@ -53,6 +53,10 @@ func (c *Config) UploadDir() string {
 	return filepath.Join(c.DataDir, "upload")
 }
 
+func (c *Config) FsDir() string {
+	return filepath.Join(c.DataDir, "fs")
+}
+
 var current *Config
 
 func Load(fname string) {

@@ -1,6 +1,7 @@
 package api
 
 import (
+	"log"
 	"strconv"
 )
 
@@ -10,4 +11,16 @@ func parseId(s string) int64 {
 		return 0
 	}
 	return id
+}
+
+// one does not simply crash the whole server on some random panic
+func goSafe(f func()) {
+	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				log.Printf("panic: %v", r)
+			}
+		}()
+		f()
+	}()
 }

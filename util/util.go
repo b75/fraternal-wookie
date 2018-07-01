@@ -1,12 +1,16 @@
 package util
 
 import (
+	"bytes"
+	"errors"
 	"fmt"
 	"html/template"
 	"io/ioutil"
 	"log"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 )
@@ -14,6 +18,13 @@ import (
 const DateTimeFormat = "2006-01-02 15:04:05"
 
 const Month time.Duration = time.Duration(30 * 24 * time.Hour)
+
+var Sha256HexExp *regexp.Regexp
+var InvalidSha256HashError = errors.New("invalid sha256 hash")
+
+func init() {
+	Sha256HexExp = regexp.MustCompile(`^[0-9a-f]{64}$`)
+}
 
 func LoadTemplates(tplRoot string, fmap template.FuncMap) (*template.Template, error) {
 	files := []string{}
@@ -61,4 +72,56 @@ func LoadTemplates(tplRoot string, fmap template.FuncMap) (*template.Template, e
 
 func FormatDateTime(t time.Time) string {
 	return t.In(time.Local).Format(DateTimeFormat)
+}
+
+func FileSha256SumHex(fname string) (string, error) {
+	cmd := exec.Command("sha256sum", fname)
+
+	outb := &bytes.Buffer{}
+	errb := &bytes.Buffer{}
+
+	cmd.Stdout = outb
+	cmd.Stderr = errb
+
+	if err := cmd.Run(); err != nil {
+		return "", err
+	}
+
+	if errb.Len() != 0 {
+		log.Printf("sha256sum:\n%s", errb.String())
+	}
+
+	parts := strings.Fields(outb.String())
+
+	return parts[0], nil
+}
+
+func FileMimeCharset(fname string) (mime, charset string, err error) {
+	cmd := exec.Command("file", "-ib", fname)
+
+	outb := &bytes.Buffer{}
+	errb := &bytes.Buffer{}
+
+	cmd.Stdout = outb
+	cmd.Stderr = errb
+
+	if err = cmd.Run(); err != nil {
+		return
+	}
+
+	if errb.Len() != 0 {
+		log.Printf("file -ib:\n%s", errb.String())
+	}
+
+	parts := strings.SplitN(outb.String(), ";", 2)
+
+	if len(parts) != 2 {
+		err = fmt.Errorf("file -ib output contains no semicolon: %s", outb.String())
+		return
+	}
+
+	mime = strings.TrimSpace(parts[0])
+	charset = strings.TrimPrefix(strings.TrimSpace(parts[1]), "charset=")
+
+	return
 }
