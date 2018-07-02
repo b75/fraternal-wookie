@@ -11,6 +11,72 @@ type fileRepo struct {
 	db *sql.DB
 }
 
+func (r *fileRepo) Find(hash string) *model.File {
+	file := &model.File{}
+
+	if err := r.db.QueryRow("SELECT hash, ctime, filename, size, mime, charset FROM file WHERE hash = $1", hash).Scan(
+		&file.Hash,
+		&file.Ctime,
+		&file.Filename,
+		&file.Size,
+		&file.Mime,
+		&file.Charset,
+	); err != nil {
+		if err != sql.ErrNoRows {
+			panic(err)
+		}
+		return nil
+	}
+
+	return file
+}
+
+func (r *fileRepo) FindByUser(user *model.User) model.Files {
+	files := model.Files{}
+	if user == nil {
+		return files
+	}
+
+	rows, err := r.db.Query("SELECT f.hash, a.ctime, f.filename, f.size, f.mime, f.charset FROM file_access a LEFT JOIN file f ON (a.hash = f.hash) WHERE a.user_id = $1", user.Id)
+	if err != nil {
+		panic(err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		file := &model.File{}
+		if err := rows.Scan(
+			&file.Hash,
+			&file.Ctime,
+			&file.Filename,
+			&file.Size,
+			&file.Mime,
+			&file.Charset,
+		); err != nil {
+			panic(err)
+		}
+		files = append(files, file)
+	}
+
+	if err = rows.Err(); err != nil {
+		panic(err)
+	}
+
+	return files
+}
+
+func (r *fileRepo) CanAccess(file *model.File, user *model.User) bool {
+	if file == nil || user == nil {
+		return false
+	}
+	exists := false
+	if err := r.db.QueryRow("SELECT EXISTS(SELECT 1 FROM file_access WHERE hash = $1 AND user_id = $2 LIMIT 1)", file.Hash, user.Id).Scan(&exists); err != nil {
+		panic(err)
+	}
+
+	return exists
+}
+
 func (r *fileRepo) InsertForUserId(f *model.File, userId int64) (err error) {
 	if !util.Sha256HexExp.MatchString(f.Hash) {
 		return util.InvalidSha256HashError

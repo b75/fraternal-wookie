@@ -11,6 +11,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -18,6 +19,12 @@ import (
 const DateTimeFormat = "2006-01-02 15:04:05"
 
 const Month time.Duration = time.Duration(30 * 24 * time.Hour)
+
+const (
+	KiloByte = 1024
+	MegaByte = 1024 * KiloByte
+	GigaByte = 1024 * MegaByte
+)
 
 var Sha256HexExp *regexp.Regexp
 var InvalidSha256HashError = errors.New("invalid sha256 hash")
@@ -124,4 +131,21 @@ func FileMimeCharset(fname string) (mime, charset string, err error) {
 	charset = strings.TrimPrefix(strings.TrimSpace(parts[1]), "charset=")
 
 	return
+}
+
+func FormatFileSize(size uint64) string {
+	f := float64(size)
+
+	if size < KiloByte {
+		return fmt.Sprintf("%d B", size)
+	} else if size < MegaByte {
+		f /= KiloByte
+		return strconv.FormatFloat(f, 'f', 2, 64) + " kB"
+	} else if size < GigaByte {
+		f /= MegaByte
+		return strconv.FormatFloat(f, 'f', 2, 64) + " MB"
+	} else {
+		f /= GigaByte
+		return strconv.FormatFloat(f, 'f', 2, 64) + " GB"
+	}
 }

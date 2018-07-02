@@ -42,6 +42,7 @@
 				<h4 class="ui header">TODO</h4>
 			</div>
 			<div class="ui tab" data-tab="files">
+
 				<h4 class="ui top attached header"><i class="upload icon"></i> Uploads</h4>
 				<div class="ui attached segment">
 					<div class="ui grid">
@@ -54,6 +55,28 @@
 							<div class="js-widget upload-status-widget"></div>
 						</div>
 					</div>
+				</div>
+
+				<h4 class="ui top attached header"><i class="file icon"></i> Files</h4>
+				<div class="ui attached segment">
+					<table class="ui celled striped table">
+						<thead>
+							<tr>
+								<th colspan="3">My Files</th>
+							</tr>
+						</thead>
+						<tbody>
+							{{range .Files}}
+							<tr>
+								<td class="collapsing">
+									<i class="file alternate icon"></i> <a class="js-download-link" data-file="{{.Hash}}">{{.Filename}}</a>
+								</td>
+								<td>{{.Ctime | datetime}}</td>
+								<td>{{.Size | filesize}}</td>
+							</tr>
+							{{end}}
+						</tbody>
+					</table>
 				</div>
 			</div>
 		</div>

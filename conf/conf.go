@@ -35,10 +35,15 @@ type ApiConfig struct {
 	AuthIssuer     string
 	AuthAudience   string
 	Expiry         uint64
+	Download       DownloadConfig
 }
 
 type DebugConfig struct {
 	ReloadTemplates bool
+}
+
+type DownloadConfig struct {
+	ExpireMinutes uint
 }
 
 func (c *Config) StaticDir() string {
@@ -153,6 +158,10 @@ func check() error {
 		check{
 			ok:      current.Api.Expiry != 0,
 			failmsg: "Config.Api.Expiry is 0",
+		},
+		check{
+			ok:      current.Api.Download.ExpireMinutes != 0,
+			failmsg: "Config.Api.Download.ExpireMinutes is 0",
 		},
 	}
 

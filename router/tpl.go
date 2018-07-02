@@ -25,6 +25,7 @@ func LoadTemplates(dirname string) {
 		"apiurl":   func() string { return conf.Get().Api.Url },
 		"connpath": func() string { return conf.Get().Api.ConnectionPath },
 		"datetime": func(t time.Time) string { return util.FormatDateTime(t) },
+		"filesize": util.FormatFileSize,
 	}
 
 	tpls, err = util.LoadTemplates(dirname, fmap)

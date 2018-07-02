@@ -36,6 +36,23 @@ $(function() {
 		});
 	});
 
+	$(".js-download-link").on("click", function(event) {
+		event.preventDefault();
+
+		var link = $(this);
+		var file = link.data("file");
+		if (!file) {
+			return;
+		}
+
+		Api.post.downloadNew(file).done(function(response) {
+			var url = Api.getUrl() + '/download?Code=' + response.Code;
+			window.location = url;
+		}).fail(function(error) {
+			Util.handleFail(error);
+		});
+	});
+
 	$(".js-modal-button").on("click", function(event) {
 		event.preventDefault();
 

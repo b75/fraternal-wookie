@@ -84,7 +84,7 @@ var Api = (function() {
 				return Api.call("GET", "/group", {
 					Id: String(groupId)
 				});
-			},
+			}
 		},
 
 		post: {
@@ -103,6 +103,10 @@ var Api = (function() {
 			uploadNew: function(data) {
 				return Api.call("POST", "/uploadnew", data);
 			},
+
+			downloadNew: function(file) {
+				return Api.call("POST", "/downloadnew?Hash=" + String(file));
+			}
 		},
 
 		setUrl: function(url) {

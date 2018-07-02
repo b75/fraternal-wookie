@@ -39,3 +39,10 @@ func StoreFile(hash, fname string) error {
 
 	return os.Rename(fname, fsn)
 }
+
+func GetFile(hash string) (*os.File, error) {
+	if !util.Sha256HexExp.MatchString(hash) {
+		return nil, util.InvalidSha256HashError
+	}
+	return os.Open(fsPath(hash))
+}
