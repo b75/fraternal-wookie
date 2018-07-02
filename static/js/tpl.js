@@ -40,6 +40,21 @@ var Tpl = (function() {
 			html +=    ' <div class="label"><%= filename %></div>';
 			html +=    '</div>';
 			return html;
+		},
+
+		fileSelection: function() {
+			var html = '<div class="item">';
+			html += '    <i class="file alternate icon"></i>';
+			html += '    <div class="content"><%= filename %> (<%= size %>)</div>';
+			html += '   </div>';
+			return html;
+		},
+
+		fileSelectionTotal: function() {
+			var html = '<div class="item">';
+			html += '    <div class="content"><b>Total</b> <%= size %></div>';
+			html += '   </div>';
+			return html;
 		}
 	};
 })();
