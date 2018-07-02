@@ -5,6 +5,8 @@ import (
 	"time"
 )
 
+type Uploads []*Upload
+
 type Upload struct {
 	Code     string
 	Ctime    time.Time `json:"-"`

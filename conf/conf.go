@@ -18,6 +18,7 @@ type Config struct {
 	Db      string
 	Session SessionConfig
 	Api     ApiConfig
+	Cleanup CleanupConfig
 	Debug   DebugConfig
 }
 
@@ -40,6 +41,10 @@ type ApiConfig struct {
 
 type DebugConfig struct {
 	ReloadTemplates bool
+}
+
+type CleanupConfig struct {
+	UploadTimeoutHours uint
 }
 
 type DownloadConfig struct {
@@ -162,6 +167,11 @@ func check() error {
 		check{
 			ok:      current.Api.Download.ExpireMinutes != 0,
 			failmsg: "Config.Api.Download.ExpireMinutes is 0",
+		},
+		// cleanup
+		check{
+			ok:      current.Cleanup.UploadTimeoutHours != 0,
+			failmsg: "Config.Cleanup.UploadTimeoutHours is 0",
 		},
 	}
 
