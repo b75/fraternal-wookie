@@ -38,13 +38,8 @@ var Conn = (function() {
 				}
 
 				var parts = String(event.data).split(" ");
-				switch (parts[0]) {
-					case "new-group-message":
-						$(".js-widget.group-chat-widget").trigger({
-							type: "ws-new-group-message",
-							group: parts[1]
-						});
-						break;
+				var kind = parts.shift();
+				switch (kind) {
 					case "expired":
 						Token.clear();
 						Token.get().done(function(token) {
@@ -53,6 +48,11 @@ var Conn = (function() {
 						break;
 					default:
 						console.log("socket connection message:", event.data);
+						$("body").trigger({
+							type: "ws-event",
+							kind: kind,
+							args: parts
+						});
 				}
 			};
 			conn.onerror = function(error) {

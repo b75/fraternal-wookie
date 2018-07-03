@@ -22,9 +22,6 @@
 		$(".js-widget.group-detail-widget").each(function(i, v) {
 			var widget = $(v);
 			widget.data("controller", groupDetailWidgetController(widget));
-			$("body").on("ws-conn-open", function(event) {
-				widget.data("controller").subscribe();
-			});
 		});
 
 		$(".js-widget.group-detail-widget").on("js-widget-refresh", function(event) {

@@ -30,8 +30,15 @@
 				});
 			}, 250),
 
-			subscribe: function() {
-				Conn.send("subscribe new-group-message " + group);
+			onWsEvent: function(event) {
+				if (event.kind !== "new-group-message") {
+					return;
+				}
+				var gid = event.args && event.args.length ? parseInt(event.args[0]) : null;
+				if (gid !== group) {
+					return;
+				}
+				this.update();
 			}
 		};
 	};
@@ -40,9 +47,10 @@
 	$(function() {
 		$(".js-widget.group-chat-widget").each(function(i, v) {
 			var widget = $(v);
-			widget.data("controller", groupChatWidgetController(widget));
-			$("body").on("ws-conn-open", function(event) {
-				widget.data("controller").subscribe();
+			var ctrl = groupChatWidgetController(widget);
+			widget.data("controller", ctrl);
+			$("body").on("ws-event", function(event) {
+				ctrl.onWsEvent(event);
 			});
 		});
 

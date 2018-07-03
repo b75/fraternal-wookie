@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"strconv"
 	"strings"
 	"time"
 
@@ -42,11 +41,6 @@ func connect(w http.ResponseWriter, rq *http.Request) {
 	readChan := make(chan []byte)
 	pongChan := make(chan string)
 	listener := &event.Listener{}
-	listener.On(event.EventTypeHeartbeat, func(e event.Event) {
-		handleWrite(c, "heartbeat")
-	}).On(event.EventTypeTokenExpired, func(e event.Event) {
-		handleWrite(c, "expired")
-	})
 	broadcaster.RegisterListener(listener)
 	defer broadcaster.RemoveListener(listener)
 
@@ -125,43 +119,24 @@ func handleMessage(msg []byte, c *websocket.Conn, listener *event.Listener) {
 			return
 		}
 		listener.Token = tk
+		subscribe(c, listener)
 	case "logout":
 		listener.Token = nil
-	case "subscribe":
-		if len(parts) < 2 {
-			handleWrite(c, "expecting: subscribe [TYPE]")
-			return
-		}
-		handleSubscribe(c, listener, parts[1], parts[2:]...)
 	default:
 		handleWrite(c, fmt.Sprintf("unknown cmd '%s'", parts[0]))
 	}
 }
 
-func handleSubscribe(c *websocket.Conn, listener *event.Listener, typ string, opts ...string) {
-	switch typ {
-	case "new-group-message":
-		if len(opts) != 1 {
-			handleWrite(c, "expecting: new-group-message [GROUP ID]")
+func subscribe(c *websocket.Conn, listener *event.Listener) {
+	listener.On(event.EventTypeHeartbeat, func(e event.Event) {
+		handleWrite(c, "heartbeat")
+	}).On(event.EventTypeTokenExpired, func(e event.Event) {
+		handleWrite(c, "expired")
+	}).On(event.EventTypeNewGroupMessage, func(e event.Event) {
+		ev, ok := e.(*event.NewGroupMessageEvent)
+		if !ok {
 			return
 		}
-		gid, err := strconv.ParseInt(opts[0], 10, 64)
-		if err != nil {
-			handleWrite(c, err.Error())
-			return
-		}
-
-		listener.On(event.EventTypeNewGroupMessage, func(e event.Event) {
-			ev, ok := e.(*event.NewGroupMessageEvent)
-			if !ok {
-				return
-			}
-			if gid != ev.Group.Id {
-				return
-			}
-			handleWrite(c, fmt.Sprintf("new-group-message %d", ev.Group.Id))
-		})
-	default:
-		handleWrite(c, fmt.Sprintf("unknown event type '%s'", typ))
-	}
+		handleWrite(c, fmt.Sprintf("new-group-message %d", ev.Group.Id))
+	})
 }
