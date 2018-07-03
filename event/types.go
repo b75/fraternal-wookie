@@ -12,6 +12,7 @@ const (
 	EventTypeTokenExpired
 	EventTypeNewGroupMessage
 	EventTypeGroupDetailEdit
+	EventTypeNewFileAccess
 )
 
 type Event interface {
@@ -55,4 +56,17 @@ func (e *NewGroupMessageEvent) Type() uint64 {
 
 func (e *NewGroupMessageEvent) CanReceive(user *model.User) bool {
 	return user.Is(e.Admin) || repo.Groups.IsMember(e.Group, user)
+}
+
+/* NewFileAccess */
+type NewFileAccessEvent struct {
+	UserId int64
+}
+
+func (e *NewFileAccessEvent) Type() uint64 {
+	return EventTypeNewFileAccess
+}
+
+func (e *NewFileAccessEvent) CanReceive(user *model.User) bool {
+	return user.HasId(e.UserId)
 }

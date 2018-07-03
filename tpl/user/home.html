@@ -59,7 +59,7 @@
 
 				<h4 class="ui top attached header"><i class="file icon"></i> Files</h4>
 				<div class="ui attached segment">
-					<table class="ui celled striped table">
+					<table class="ui celled striped table js-widget file-list-widget" data-user-id="{{.User.Id}}">
 						<thead>
 							<tr>
 								<th colspan="3">My Files</th>
@@ -71,7 +71,7 @@
 								<td class="collapsing">
 									<i class="file alternate icon"></i> <a class="js-download-link" data-file="{{.Hash}}">{{.Filename}}</a>
 								</td>
-								<td>{{.Ctime | datetime}}</td>
+								<td>{{.Mime}}</td>
 								<td>{{.Size | filesize}}</td>
 							</tr>
 							{{end}}

@@ -42,7 +42,7 @@
 			}
 		};
 	};
-	
+
 	// onload
 	$(function() {
 		$(".js-widget.group-chat-widget").each(function(i, v) {
@@ -55,11 +55,6 @@
 		});
 
 		$(".js-widget.group-chat-widget").on("js-widget-refresh", function(event) {
-			event.preventDefault();
-			$(this).data("controller").update();
-		});
-
-		$(".js-widget.group-chat-widget").on("ws-new-group-message", function(event) {
 			event.preventDefault();
 			$(this).data("controller").update();
 		});

@@ -6,11 +6,14 @@ import (
 	"path/filepath"
 
 	"github.com/b75/fraternal-wookie/conf"
+	"github.com/b75/fraternal-wookie/event"
 	"github.com/b75/fraternal-wookie/fs"
 	"github.com/b75/fraternal-wookie/model"
 	"github.com/b75/fraternal-wookie/repo"
 	"github.com/b75/fraternal-wookie/util"
 )
+
+var Broadcaster *event.Broadcaster
 
 func HandleUpload(upload *model.Upload) error {
 	fname := filepath.Join(conf.Get().UploadDir(), upload.Code)
@@ -36,7 +39,7 @@ func HandleUpload(upload *model.Upload) error {
 		return err
 	}
 
-	if err := fs.StoreFile(hash, fname); err != nil {
+	if err = fs.StoreFile(hash, fname); err != nil {
 		return err
 	}
 
@@ -48,5 +51,15 @@ func HandleUpload(upload *model.Upload) error {
 		Charset:  charset,
 	}
 
-	return repo.Files.InsertForUserId(file, upload.UserId)
+	if err = repo.Files.InsertForUserId(file, upload.UserId); err != nil {
+		return err
+	}
+
+	if Broadcaster != nil {
+		Broadcaster.Event(&event.NewFileAccessEvent{
+			UserId: upload.UserId,
+		})
+	}
+
+	return nil
 }

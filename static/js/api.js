@@ -84,6 +84,10 @@ var Api = (function() {
 				return Api.call("GET", "/group", {
 					Id: String(groupId)
 				});
+			},
+
+			files: function(params) {
+				return Api.call("GET", "/files", params);
 			}
 		},
 

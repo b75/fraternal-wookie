@@ -10,6 +10,7 @@ import (
 	"github.com/b75/fraternal-wookie/apirouter"
 	"github.com/b75/fraternal-wookie/event"
 	"github.com/b75/fraternal-wookie/token"
+	"github.com/b75/fraternal-wookie/upload"
 	"github.com/gorilla/websocket"
 )
 
@@ -20,6 +21,8 @@ func init() {
 
 	broadcaster = &event.Broadcaster{}
 	broadcaster.Start()
+
+	upload.Broadcaster = broadcaster
 }
 
 var upgrader = websocket.Upgrader{
@@ -138,5 +141,11 @@ func subscribe(c *websocket.Conn, listener *event.Listener) {
 			return
 		}
 		handleWrite(c, fmt.Sprintf("new-group-message %d", ev.Group.Id))
+	}).On(event.EventTypeNewFileAccess, func(e event.Event) {
+		ev, ok := e.(*event.NewFileAccessEvent)
+		if !ok {
+			return
+		}
+		handleWrite(c, fmt.Sprintf("new-file-access %d", ev.UserId))
 	})
 }

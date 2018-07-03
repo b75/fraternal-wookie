@@ -2,6 +2,8 @@ package model
 
 import (
 	"html/template"
+	"net/url"
+	"strconv"
 	"time"
 )
 
@@ -14,6 +16,24 @@ type File struct {
 	Size     uint64
 	Mime     string
 	Charset  string
+}
+
+type FileSearchParams struct {
+	UserId int64
+	Limit  uint64
+	Offset uint64
+}
+
+type FileSearchResult struct {
+	Params     *FileSearchParams
+	TotalCount int64
+	Result     Files
+}
+
+func (fs Files) HtmlEscape() {
+	for _, f := range fs {
+		f.HtmlEscape()
+	}
 }
 
 func (f *File) HtmlEscape() {
@@ -32,4 +52,20 @@ func (f *File) ContentType() string {
 	}
 
 	return mime + "; charset=" + charset
+}
+
+func (p *FileSearchParams) FromQuery(query url.Values) error {
+	userId, _ := strconv.ParseInt(query.Get("UserId"), 10, 64)
+	limit, _ := strconv.ParseUint(query.Get("Limit"), 10, 64)
+	offset, _ := strconv.ParseUint(query.Get("Offset"), 10, 64)
+
+	p.UserId = userId
+	p.Limit = limit
+	p.Offset = offset
+
+	return nil
+}
+
+func (r *FileSearchResult) HtmlEscape() {
+	r.Result.HtmlEscape()
 }

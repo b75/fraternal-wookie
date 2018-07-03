@@ -42,6 +42,17 @@ var Tpl = (function() {
 			return html;
 		},
 
+		file: function() {
+			var html = '<tr>';
+			html += '    <td class="collapsing">';
+			html += '     <i class="file alternate icon"></i> <a class="js-download-link" data-file="<%= Hash %>"><%= Filename %></a>';
+			html += '    </td>';
+			html += '    <td><%= Mime %></td>';
+			html += '    <td><%= Size %></td>';
+			html += '   </tr>';
+			return html;
+		},
+
 		fileSelection: function() {
 			var html = '<div class="item">';
 			html += '    <i class="file alternate icon"></i>';

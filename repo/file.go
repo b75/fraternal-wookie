@@ -37,7 +37,7 @@ func (r *fileRepo) FindByUser(user *model.User) model.Files {
 		return files
 	}
 
-	rows, err := r.db.Query("SELECT f.hash, a.ctime, f.filename, f.size, f.mime, f.charset FROM file_access a LEFT JOIN file f ON (a.hash = f.hash) WHERE a.user_id = $1", user.Id)
+	rows, err := r.db.Query("SELECT f.hash, a.ctime, f.filename, f.size, f.mime, f.charset FROM file_access a JOIN file f ON (a.hash = f.hash) WHERE a.user_id = $1", user.Id)
 	if err != nil {
 		panic(err)
 	}
@@ -63,6 +63,43 @@ func (r *fileRepo) FindByUser(user *model.User) model.Files {
 	}
 
 	return files
+}
+
+func (r *fileRepo) Search(params *model.FileSearchParams) (model.Files, int64) {
+	// TODO implement sql query builder
+
+	var count int64
+	if err := r.db.QueryRow("SELECT COUNT(*) FROM file_access a JOIN file f ON (a.hash = f.hash) WHERE a.user_id = $1", params.UserId).Scan(&count); err != nil {
+		panic(err)
+	}
+
+	rows, err := r.db.Query("SELECT f.hash, a.ctime, f.filename, f.size, f.mime, f.charset FROM file_access a JOIN file f ON (a.hash = f.hash) WHERE a.user_id = $1 ORDER BY f.filename LIMIT $2 OFFSET $3", params.UserId, params.Limit, params.Offset)
+	if err != nil {
+		panic(err)
+	}
+	defer rows.Close()
+
+	files := model.Files{}
+	for rows.Next() {
+		file := &model.File{}
+		if err := rows.Scan(
+			&file.Hash,
+			&file.Ctime,
+			&file.Filename,
+			&file.Size,
+			&file.Mime,
+			&file.Charset,
+		); err != nil {
+			panic(err)
+		}
+		files = append(files, file)
+	}
+
+	if err = rows.Err(); err != nil {
+		panic(err)
+	}
+
+	return files, count
 }
 
 func (r *fileRepo) CanAccess(file *model.File, user *model.User) bool {
