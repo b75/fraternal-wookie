@@ -50,6 +50,9 @@ func uploads() error {
 		if info.IsDir() {
 			return filepath.SkipDir
 		}
+		if now.Sub(info.ModTime()) <= timeout {
+			return nil
+		}
 
 		code := filepath.Base(path)
 		if upload := dbMap[code]; upload == nil {
