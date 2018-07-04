@@ -10,7 +10,8 @@ import (
 )
 
 const (
-	EventBufSize = 128
+	EventBufSize             = 128
+	HeartbeatIntervalSeconds = 30
 )
 
 // TODO Listeners are kinda racy atm
@@ -81,7 +82,7 @@ func (b *Broadcaster) run() {
 		}
 	}()
 
-	heartbeat := time.NewTicker(30 * time.Second)
+	heartbeat := time.NewTicker(HeartbeatIntervalSeconds * time.Second)
 mainLoop:
 	for {
 		select {

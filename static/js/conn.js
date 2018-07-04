@@ -30,6 +30,7 @@ var Conn = (function() {
 			conn.onclose = function(event) {
 				console.log("socket connection close:", event);
 				conn = null;
+				$("body").trigger("ws-conn-close");
 			};
 			conn.onmessage = function(event) {
 				if (!event.isTrusted) {
@@ -46,6 +47,9 @@ var Conn = (function() {
 							Conn.send("auth Bearer " + token);
 						});
 						break;
+					case "heartbeat":
+						$("body").trigger("ws-conn-heartbeat");
+						break;
 					default:
 						console.log("socket connection message:", event.data);
 						$("body").trigger({
@@ -58,6 +62,7 @@ var Conn = (function() {
 			conn.onerror = function(error) {
 				console.error("socket connection error:", error);
 				conn = null;
+				$("body").trigger("ws-conn-error");
 			};
 
 		},
