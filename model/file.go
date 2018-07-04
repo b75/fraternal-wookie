@@ -20,8 +20,11 @@ type File struct {
 
 type FileSearchParams struct {
 	UserId int64
-	Limit  uint64
-	Offset uint64
+	Search string
+
+	OrderBy string
+	Limit   uint64
+	Offset  uint64
 }
 
 type FileSearchResult struct {
@@ -58,8 +61,14 @@ func (p *FileSearchParams) FromQuery(query url.Values) error {
 	userId, _ := strconv.ParseInt(query.Get("UserId"), 10, 64)
 	limit, _ := strconv.ParseUint(query.Get("Limit"), 10, 64)
 	offset, _ := strconv.ParseUint(query.Get("Offset"), 10, 64)
+	search := query.Get("Search")
+	if search != "" {
+		search = "%" + search + "%"
+	}
 
 	p.UserId = userId
+	p.Search = search
+	p.OrderBy = query.Get("OrderBy")
 	p.Limit = limit
 	p.Offset = offset
 

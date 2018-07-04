@@ -14,7 +14,6 @@
 
 		return {
 			update: _.throttle(function() {
-				console.log("TODO filelist update");
 				Api.get.files(params).done(function(result) {
 					tbody.empty();
 					$.each(result.Result, function(i, file) {
@@ -78,6 +77,7 @@
 			$("body").on("ws-event", function(event) {
 				ctrl.onWsEvent(event);
 			});
+			ctrl.update();
 		});
 
 		// file list controls widget

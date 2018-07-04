@@ -31,49 +31,37 @@ func (r *fileRepo) Find(hash string) *model.File {
 	return file
 }
 
-func (r *fileRepo) FindByUser(user *model.User) model.Files {
-	files := model.Files{}
-	if user == nil {
-		return files
-	}
-
-	rows, err := r.db.Query("SELECT f.hash, a.ctime, f.filename, f.size, f.mime, f.charset FROM file_access a JOIN file f ON (a.hash = f.hash) WHERE a.user_id = $1 ORDER BY f.filename", user.Id)
-	if err != nil {
-		panic(err)
-	}
-	defer rows.Close()
-
-	for rows.Next() {
-		file := &model.File{}
-		if err := rows.Scan(
-			&file.Hash,
-			&file.Ctime,
-			&file.Filename,
-			&file.Size,
-			&file.Mime,
-			&file.Charset,
-		); err != nil {
-			panic(err)
-		}
-		files = append(files, file)
-	}
-
-	if err = rows.Err(); err != nil {
-		panic(err)
-	}
-
-	return files
-}
-
 func (r *fileRepo) Search(params *model.FileSearchParams) (model.Files, int64) {
-	// TODO implement sql query builder
+	b := &util.PgQueryBuilder{}
+
+	b.Select("COUNT(*)").From("file_access a JOIN file f ON (a.hash = f.hash)")
+
+	if params.UserId != 0 {
+		b.Where("a.user_id = ?", params.UserId)
+	}
+	if params.Search != "" {
+		b.Where("f.filename ILIKE ? OR f.mime ILIKE ?", params.Search, params.Search)
+	}
 
 	var count int64
-	if err := r.db.QueryRow("SELECT COUNT(*) FROM file_access a JOIN file f ON (a.hash = f.hash) WHERE a.user_id = $1", params.UserId).Scan(&count); err != nil {
+	if err := r.db.QueryRow(b.Sql(), b.Args()...).Scan(&count); err != nil {
 		panic(err)
 	}
 
-	rows, err := r.db.Query("SELECT f.hash, a.ctime, f.filename, f.size, f.mime, f.charset FROM file_access a JOIN file f ON (a.hash = f.hash) WHERE a.user_id = $1 ORDER BY f.filename LIMIT $2 OFFSET $3", params.UserId, params.Limit, params.Offset)
+	b.Select("f.hash, a.ctime, f.filename, f.size, f.mime, f.charset")
+	switch params.OrderBy {
+	case "Filename":
+		b.OrderBy("f.filename")
+	case "!Filename":
+		b.OrderBy("f.filename DESC")
+	case "Size":
+		b.OrderBy("f.size")
+	case "!Size":
+		b.OrderBy("f.size DESC")
+	}
+	b.Limit(params.Limit).Offset(params.Offset)
+
+	rows, err := r.db.Query(b.Sql(), b.Args()...)
 	if err != nil {
 		panic(err)
 	}

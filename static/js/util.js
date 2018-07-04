@@ -85,6 +85,8 @@ var Util = (function() {
 			});
 
 			elem.find(".tabular.menu .item").tab();
+			elem.find(".ui.dropdown").dropdown("restore placeholder text");
+			elem.find(".js-popup").popup();
 		}
 	};
 }());

@@ -60,37 +60,42 @@
 				<h4 class="ui top attached header"><i class="file icon"></i> Files</h4>
 				<div class="ui attached segment">
 					<div class="ui grid js-widget file-list-controls-widget" data-list=".js-widget.file-list-widget">
-						<div class="six wide left aligned column">
+						<div class="eight wide left aligned column">
 							<div class="ui left icon input">
 								<i class="search icon"></i>
 								<input placeholder="Search" type="text" name="Search"/>
 							</div>
 						</div>
-						<div class="ten wide right aligned column">
+						<div class="eight wide right aligned column">
 							<div class="ui small green labeled icon button search-button">
 								<i class="search icon"></i> Search
 							</div> 
+						</div>
+						<div class="eight wide left aligned column">
+
+							<div class="ui fluid dropdown">
+								<input name="OrderBy" type="hidden"/>
+								<i class="dropdown icon"></i>
+								<div class="default text">Sort By</div>
+								<div class="menu">
+									<div class="item" data-value="Filename">Filename</div>
+									<div class="item" data-value="!Filename">Filename Descending</div>
+									<div class="item" data-value="Size">Size</div>
+									<div class="item" data-value="!Size">Size Descending</div>
+								</div>
+							</div>
+
 						</div>
 					</div>
 					<table class="ui fixed striped table js-widget file-list-widget" data-user-id="{{.User.Id}}">
 						<thead>
 							<tr>
-								<th class="six wide">Name <i class="angle up icon"></i></th>
+								<th class="six wide">Name</th>
 								<th class="six wide">Mime</th>
 								<th class="four wide">Size</th>
 							</tr>
 						</thead>
-						<tbody>
-							{{range .Files}}
-							<tr>
-								<td class="collapsing">
-									<i class="file alternate icon"></i> <a class="js-download-link" data-file="{{.Hash}}">{{.Filename}}</a>
-								</td>
-								<td>{{.Mime}}</td>
-								<td>{{.Size | filesize}}</td>
-							</tr>
-							{{end}}
-						</tbody>
+						<tbody></tbody>
 					</table>
 				</div>
 			</div>

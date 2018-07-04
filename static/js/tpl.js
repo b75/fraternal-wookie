@@ -45,10 +45,10 @@ var Tpl = (function() {
 		file: function(data) {
 			let tpl = `
 <tr>
-	<td class="collapsing">
-		<i class="file alternate icon"></i> <a class="js-download-link" data-file="${data.Hash}">${data.Filename}</a>
+	<td class="collapsing js-popup" data-content="${data.Filename}">
+		<i class="download icon"></i> <a class="js-download-link" data-file="${data.Hash}">${data.Filename}</a>
 	</td>
-	<td>${data.Mime}</td>
+	<td class="js-popup" data-content="${data.Mime}">${data.Mime}</td>
 	<td>${Util.formatFileSize(data.Size)}</td>
 </tr>
 			`;
