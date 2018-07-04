@@ -59,10 +59,25 @@
 
 				<h4 class="ui top attached header"><i class="file icon"></i> Files</h4>
 				<div class="ui attached segment">
-					<table class="ui celled striped table js-widget file-list-widget" data-user-id="{{.User.Id}}">
+					<div class="ui grid js-widget file-list-controls-widget" data-list=".js-widget.file-list-widget">
+						<div class="six wide left aligned column">
+							<div class="ui left icon input">
+								<i class="search icon"></i>
+								<input placeholder="Search" type="text" name="Search"/>
+							</div>
+						</div>
+						<div class="ten wide right aligned column">
+							<div class="ui small green labeled icon button search-button">
+								<i class="search icon"></i> Search
+							</div> 
+						</div>
+					</div>
+					<table class="ui fixed striped table js-widget file-list-widget" data-user-id="{{.User.Id}}">
 						<thead>
 							<tr>
-								<th colspan="3">My Files</th>
+								<th class="six wide">Name <i class="angle up icon"></i></th>
+								<th class="six wide">Mime</th>
+								<th class="four wide">Size</th>
 							</tr>
 						</thead>
 						<tbody>

@@ -37,7 +37,7 @@ func (r *fileRepo) FindByUser(user *model.User) model.Files {
 		return files
 	}
 
-	rows, err := r.db.Query("SELECT f.hash, a.ctime, f.filename, f.size, f.mime, f.charset FROM file_access a JOIN file f ON (a.hash = f.hash) WHERE a.user_id = $1", user.Id)
+	rows, err := r.db.Query("SELECT f.hash, a.ctime, f.filename, f.size, f.mime, f.charset FROM file_access a JOIN file f ON (a.hash = f.hash) WHERE a.user_id = $1 ORDER BY f.filename", user.Id)
 	if err != nil {
 		panic(err)
 	}

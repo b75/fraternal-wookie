@@ -42,15 +42,17 @@ var Tpl = (function() {
 			return html;
 		},
 
-		file: function() {
-			var html = '<tr>';
-			html += '    <td class="collapsing">';
-			html += '     <i class="file alternate icon"></i> <a class="js-download-link" data-file="<%= Hash %>"><%= Filename %></a>';
-			html += '    </td>';
-			html += '    <td><%= Mime %></td>';
-			html += '    <td><%= Size %></td>';
-			html += '   </tr>';
-			return html;
+		file: function(data) {
+			let tpl = `
+<tr>
+	<td class="collapsing">
+		<i class="file alternate icon"></i> <a class="js-download-link" data-file="${data.Hash}">${data.Filename}</a>
+	</td>
+	<td>${data.Mime}</td>
+	<td>${Util.formatFileSize(data.Size)}</td>
+</tr>
+			`;
+			return tpl;
 		},
 
 		fileSelection: function() {
