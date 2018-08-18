@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Vue test</title>
+
+		<link rel="stylesheet" type="text/css" href="/assets/ext/semantic-ui-2.3.1/semantic.min.css">
+		<link rel="stylesheet" type="text/css" href="/assets/css/style.css?v={{V}}">
+
+		<script type="text/javascript" src="/assets/ext/jquery-3.3.1/jquery-3.3.1.min.js"></script>
+		<script type="text/javascript" src="/assets/ext/semantic-ui-2.3.1/semantic.min.js"></script>
+
+		<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+		<script type="text/javascript" src="/assets/js/token.js?v={{V}}"></script>
+		<script type="text/javascript" src="/assets/js/vuetest.js?v={{V}}"></script>
+	</head>
+	<body>
+		<div id="top-menu" class="ui fixed inverted menu">
+			<div class="ui container">
+				<a class="header item" href="/index">
+					<img class="logo" src="/assets/ext/logo.png"/>
+					Fraternal Wookie
+				</a>
+				<div class="ui simple dropdown item">
+					Menu <i class="dropdown icon"></i>
+					<div class="menu">
+						<a class="item" href="/life">Life</a>
+						<a class="item" href="/assets/vuetest.html">Vue test</a>
+					</div>
+				</div>
+				<div class="right menu">
+					<template v-if="user">
+						<div class="item">Logged in as {{ user.Username }}</div>
+						<a class="item"><i class="lock alternate icon"></i> Log out</a>
+					</template>
+					<template v-else>
+						<a class="item"><i class="unlock alternate icon"></i> Log in</a>
+					</template>
+				</div>
+			</div>
+		</div>
+
+		<div id="main-container" class="ui center aligned main container">
+			<h3 class="ui header">Vue Test</h3>
+
+			<div class="ui horizontal divider"><i class="bug icon"></i></div>
+
+			<div v-if="errors.length">
+				<div class="ui error message">
+					<div class="header">Oops, something went wrong!</div>
+					<ul class="list">
+						<li v-for="(error, index) in errors">{{ error }} <i class="close icon" v-on:click="closeError(index)"></i></li>
+					</ul>
+				</div>
+			</div>
+
+			<div v-if="infos.length">
+				<div class="ui info message">
+					<div class="header">May I please have your attention?</div>
+					<ul class="list">
+						<li v-for="(info, index) in infos">{{ info }} <i class="close icon" v-on:click="closeInfo(index)"></i></li>
+					</ul>
+				</div>
+			</div>
+
+			<div class="ui grid">
+				<div class="sixteen wide left aligned column"></div>
+			</div>
+		</div>
+	</body>
+</html>
