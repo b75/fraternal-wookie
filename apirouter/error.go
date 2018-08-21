@@ -29,3 +29,16 @@ func ErrBadRequest(err error) *badRequestError {
 		err: err,
 	}
 }
+
+/*
+ * 403 Forbidden
+ */
+type forbiddenError struct{}
+
+func (err *forbiddenError) Error() string {
+	return "forbidden"
+}
+
+func ErrForbidden() *forbiddenError {
+	return &forbiddenError{}
+}

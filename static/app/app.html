@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>App</title>
+
+		<link rel="stylesheet" type="text/css" href="/assets/ext/semantic-ui-2.3.1/semantic.min.css">
+		<link rel="stylesheet" type="text/css" href="/assets/css/style.css">
+
+		<script type="text/javascript" src="/assets/ext/jquery-3.3.1/jquery-3.3.1.min.js"></script>
+		<script type="text/javascript" src="/assets/ext/semantic-ui-2.3.1/semantic.min.js"></script>
+
+		<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+		<!-- libs -->
+		<script type="text/javascript" src="/assets/app/libs/token.js"></script>
+		<script type="text/javascript" src="/assets/app/libs/api.js"></script>
+
+		<!-- components -->
+		<script type="text/javascript" src="/assets/app/components/topmenu.js"></script>
+
+		<script type="text/javascript" src="/assets/app/app.js"></script>
+	</head>
+	<body>
+		<div
+			id="app"
+			data-apiurl="http://127.0.0.1:8081">
+			<app-top-menu></app-top-menu>
+
+			<div id="main-container" class="ui center aligned main container">
+				<h3 class="ui header">Vue Test</h3>
+
+				<div class="ui horizontal divider"><i class="bug icon"></i></div>
+
+				<div v-if="errors.length">
+					<div class="ui error message">
+						<div class="header">Oops, something went wrong!</div>
+						<ul class="list">
+							<li v-for="(error, index) in errors">{{ error }} <i class="close icon" v-on:click="closeError(index)"></i></li>
+						</ul>
+					</div>
+				</div>
+
+				<div v-if="infos.length">
+					<div class="ui info message">
+						<div class="header">May I please have your attention?</div>
+						<ul class="list">
+							<li v-for="(info, index) in infos">{{ info }} <i class="close icon" v-on:click="closeInfo(index)"></i></li>
+						</ul>
+					</div>
+				</div>
+
+				<div class="ui grid">
+					<div class="sixteen wide left aligned column"></div>
+				</div>
+			</div>
+		</div>
+	</body>
+</html>

@@ -46,7 +46,7 @@ var Api = (function() {
 							} else {
 								dfd.reject(response.Error);
 							}
-						}).fail(function(xhr, foo, bar, car) {
+						}).fail(function(xhr) {
 							dfd.reject((xhr.responseJSON ? xhr.responseJSON.Error : xhr.responseText) || "unknown error");
 						});
 						break;

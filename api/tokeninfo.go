@@ -9,7 +9,7 @@ import (
 )
 
 func init() {
-	apirouter.RegisterHandler("/tokeninfo", requestTokenInfo)
+	apirouter.RegisterHandler("/token/info", requestTokenInfo)
 }
 
 type TokenInfo struct {

@@ -188,6 +188,8 @@ func handleError(w http.ResponseWriter, rq *http.Request, err error) {
 	case *badRequestError:
 		log.Printf("bad request error: %v", v.err)
 		badRequest(w)
+	case *forbiddenError:
+		forbidden(w)
 	default:
 		internalServerError(w, v)
 	}

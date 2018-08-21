@@ -1,12 +1,14 @@
 "use strict";
 
-var MainContainer;
-var Menu;
+var App;
 
 // onload
 $(function() {
-	MainContainer = new Vue({
-		el: "#main-container",
+	let appElem = $("#app");
+	Api.setUrl(appElem.data("apiurl"));
+
+	App = new Vue({
+		el: "#app",
 		data: {
 			errors: [],
 			infos: []
@@ -28,20 +30,5 @@ $(function() {
 				this.infos.push(String(info));
 			}
 		}
-	});
-
-	Menu = new Vue({
-		el: "#top-menu",
-		data: {
-			user: null
-		},
-		created: function() {},
-		methods: {}
-	});
-
-	$.when(Token.load()).then(function(token) {
-		MainContainer.addInfo("Token valid until " + new Date(token.Expiry * 1000));
-	}, function(error) {
-		MainContainer.addError("Token load failed: " + String(error));
 	});
 });
