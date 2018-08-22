@@ -24,7 +24,7 @@
 		<div
 			id="app"
 			data-apiurl="http://127.0.0.1:8081">
-			<app-top-menu></app-top-menu>
+			<app-top-menu v-bind:user="user" v-bind:expiry="expiry" v-on:login="login" v-on:logout="logout" v-on:error="addError"></app-top-menu>
 
 			<div id="main-container" class="ui center aligned main container">
 				<h3 class="ui header">Vue Test</h3>

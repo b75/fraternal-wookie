@@ -1,19 +1,20 @@
 "use strict";
 
-var App;
-
 // onload
 $(function() {
 	let appElem = $("#app");
 	Api.setUrl(appElem.data("apiurl"));
 
-	App = new Vue({
+	let App = new Vue({
 		el: "#app",
 		data: {
 			errors: [],
-			infos: []
+			infos: [],
+			user: null,
+			expiry: null
 		},
-		created: function() {
+		mounted: function() {
+			this.loadUser();
 		},
 		methods: {
 			closeError: function(index) {
@@ -28,6 +29,22 @@ $(function() {
 			},
 			addInfo: function(info) {
 				this.infos.push(String(info));
+			},
+			login: function(tokenData) {
+				Token.set(tokenData.Token, tokenData.Expiry);
+				this.loadUser();
+			},
+			logout: function() {
+				Token.clear();
+				this.user = null;
+				this.expiry = null;
+			},
+			loadUser: function() {
+				let that = this;
+				Api.call("GET", "/token/info").done(function(result) {
+					that.user = result.User;
+					that.expiry = result.Payload.exp;
+				});
 			}
 		}
 	});

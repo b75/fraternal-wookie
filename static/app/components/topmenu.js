@@ -19,8 +19,8 @@
 		</div>
 		<div class="right menu">
 			<template v-if="user">
-				<div class="item">Logged in as {{ user.Username }} ( {{ loginTimeout }} )</div>
-				<a class="item" v-on:click.prevent="logOut"><i class="lock alternate icon"></i> Log out</a>
+				<div class="item">Logged in as &quot;{{ user.Username }}&quot; {{ validUntil }}</div>
+				<a class="item" v-on:click.prevent="logout"><i class="lock alternate icon"></i> Log out</a>
 			</template>
 			<template v-else>
 				<a class="item" v-on:click.prevent="showLoginModal"><i class="unlock alternate icon"></i> Log in</a>
@@ -57,24 +57,18 @@
 
 	Vue.component("app-top-menu", {
 		template: tpl,
-		data: function() {
-			return {
-				user: null,
-				counter: 0,
-				expiry: 0
-			};
-		},
+		props: ["user", "expiry"],
 		computed: {
-			loginTimeout: function() {
-				if (!(this.counter > 0)) {
-					return "";
+			validUntil: function() {
+				if (typeof this.expiry === "number" && this.expiry > 0) {
+					let exp = new Date(this.expiry * 1000);
+
+					let h = exp.getHours() < 10 ? "0" + exp.getHours() : exp.getHours();
+					let m = exp.getMinutes() < 10 ? "0" + exp.getMinutes() : exp.getMinutes();
+
+					return "until " + h + ":" + m;	// TODO dates
 				}
-				if (this.counter > 3600) {
-					let h = Math.floor(this.counter / 3600);
-					let m = Math.floor((this.counter - h * 3600) / 60);
-					return h + " h " + m + " min";
-				}
-				return Math.floor(this.counter / 60) + " min";
+				return "";
 			}
 		},
 		mounted: function() {
@@ -122,49 +116,20 @@
 					});
 
 					Api.call("POST", "/token/new", data).done(function(result) {
-						Token.set(result.Token, result.Expiry);
-						that.loadUser();
+						that.$emit("login", result);
 					}).fail(function(error) {
-						App.addError("login failure: " + String(error));
+						that.$emit("error", "login failure: " + String(error));
 					});
 				}
 			});
-
-			that.loadUser();
-
-			setInterval(function() {
-				that.updateCounter();
-			}, 30000);
 		},
 		methods: {
 			showLoginModal: function() {
 				$("#login-modal").modal("show");
 			},
 
-			loadUser: function() {
-				let that = this;
-				Api.call("GET", "/token/info").done(function(result) {
-					that.user = result.User;
-					that.expiry = result.Payload.exp;
-					that.updateCounter();
-				});
-			},
-
-			logOut: function() {
-				Token.clear();
-				this.user = null;
-				this.counter = 0;
-				this.expiry = 0;
-			},
-
-			updateCounter: function() {
-				if (this.expiry) {
-					this.counter = this.expiry - Math.floor(new Date() / 1000);
-					if (this.counter <= 0) {
-						this.user = null;
-						this.counter = 0;
-					}
-				}
+			logout: function() {
+				this.$emit("logout");
 			}
 		}
 	});
