@@ -1,7 +1,6 @@
 package model
 
 import (
-	"html/template"
 	"net/url"
 	"strconv"
 	"time"
@@ -31,16 +30,6 @@ type FileSearchResult struct {
 	Params     *FileSearchParams
 	TotalCount int64
 	Result     Files
-}
-
-func (fs Files) HtmlEscape() {
-	for _, f := range fs {
-		f.HtmlEscape()
-	}
-}
-
-func (f *File) HtmlEscape() {
-	f.Filename = template.HTMLEscapeString(f.Filename)
 }
 
 func (f *File) ContentType() string {
@@ -73,8 +62,4 @@ func (p *FileSearchParams) FromQuery(query url.Values) error {
 	p.Offset = offset
 
 	return nil
-}
-
-func (r *FileSearchResult) HtmlEscape() {
-	r.Result.HtmlEscape()
 }

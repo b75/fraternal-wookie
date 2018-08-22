@@ -3,7 +3,7 @@
 (function() {
 
 	// BEGIN TEMPLATE
-	let tpl = `
+	const tpl = `
 <div id="top-menu" class="ui fixed inverted menu">
 	<div class="ui container">
 		<a class="header item" href="/index">

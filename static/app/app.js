@@ -11,7 +11,9 @@ $(function() {
 			errors: [],
 			infos: [],
 			user: null,
-			expiry: null
+			expiry: null,
+			groups: [],
+			selectedGroup: null
 		},
 		mounted: function() {
 			this.loadUser();
@@ -44,7 +46,29 @@ $(function() {
 				Api.call("GET", "/token/info").done(function(result) {
 					that.user = result.User;
 					that.expiry = result.Payload.exp;
+					that.loadGroups();
 				});
+			},
+			loadGroups: function() {
+				if (!this.user) {
+					return;
+				}
+
+				let that = this;
+				Api.call("GET", "/user/membergroups", {
+					UserId: this.user.Id
+				}).done(function(result) {
+					that.groups = result;
+				}).fail(function(error) {
+					that.addError("group load error: " + error);
+				});
+			},
+
+			selectGroup: function(group) {
+				if (!group) {
+					return;
+				}
+				this.selectedGroup = group;
 			}
 		}
 	});

@@ -54,5 +54,3 @@ func (page *TokenNew) HandlePost(w http.ResponseWriter, rq *http.Request) error 
 
 	return apirouter.JsonResponse(w, page)
 }
-
-func (page *TokenNew) HtmlEscape() {}

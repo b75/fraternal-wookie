@@ -1,7 +1,6 @@
 package model
 
 import (
-	"html/template"
 	"time"
 )
 
@@ -14,15 +13,4 @@ type GroupFeed struct {
 	UserId  int64
 	Header  string
 	Body    string
-}
-
-func (f *GroupFeed) HtmlEscape() {
-	f.Header = template.HTMLEscapeString(f.Header)
-	f.Body = template.HTMLEscapeString(f.Body)
-}
-
-func (fs GroupFeeds) HtmlEscape() {
-	for _, f := range fs {
-		f.HtmlEscape()
-	}
 }

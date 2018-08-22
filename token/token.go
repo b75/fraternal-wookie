@@ -44,12 +44,6 @@ type WebToken struct {
 	User    *model.User
 }
 
-func (t *WebToken) HtmlEscape() {
-	if t.User != nil {
-		t.User.HtmlEscape()
-	}
-}
-
 type rawWebToken struct {
 	header    []byte
 	payload   []byte

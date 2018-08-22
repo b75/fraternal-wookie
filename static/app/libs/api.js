@@ -22,6 +22,7 @@ var Api = (function() {
 						url: Api.getUrl() + url,
 						timeout: timeout,
 						data: typeof data === "object" ? data : {},
+						dataType: "json",
 						headers: headers
 					}).done(function(response) {
 						if (Api.isSuccess(response)) {

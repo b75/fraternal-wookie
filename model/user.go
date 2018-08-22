@@ -1,9 +1,5 @@
 package model
 
-import (
-	"html/template"
-)
-
 type User struct {
 	Id       int64
 	Username string
@@ -22,11 +18,6 @@ func (u *User) Is(other *User) bool {
 
 func (u *User) HasId(id int64) bool {
 	return u != nil && u.Id == id
-}
-
-func (u *User) HtmlEscape() {
-	u.Username = template.HTMLEscapeString(u.Username)
-	u.Email = template.HTMLEscapeString(u.Email)
 }
 
 func (us Users) Contain(user *User) bool {

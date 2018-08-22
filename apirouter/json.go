@@ -6,14 +6,7 @@ import (
 	"net/http"
 )
 
-type HtmlEscaper interface {
-	HtmlEscape()
-}
-
-func JsonResponse(w http.ResponseWriter, data HtmlEscaper) error {
-	if data != nil {
-		data.HtmlEscape()
-	}
+func JsonResponse(w http.ResponseWriter, data interface{}) error {
 	response := map[string]interface{}{
 		"Success": true,
 		"Result":  data,

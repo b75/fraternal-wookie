@@ -17,6 +17,8 @@
 
 		<!-- components -->
 		<script type="text/javascript" src="/assets/app/components/topmenu.js"></script>
+		<script type="text/javascript" src="/assets/app/components/grouplist.js"></script>
+		<script type="text/javascript" src="/assets/app/components/groupdetail.js"></script>
 
 		<script type="text/javascript" src="/assets/app/app.js"></script>
 	</head>
@@ -50,7 +52,15 @@
 				</div>
 
 				<div class="ui grid">
-					<div class="sixteen wide left aligned column"></div>
+					<!-- left column -->
+					<div class="four wide left aligned column">
+						<app-group-list v-bind:groups="groups" v-bind:selected="selectedGroup" v-on:select-group="selectGroup"></app-group-list>
+					</div>
+
+					<!-- main column -->
+					<div class="twelve wide left aligned column">
+						<app-group-detail v-bind:group="selectedGroup"></app-group-detail>
+					</div>
 				</div>
 			</div>
 		</div>
